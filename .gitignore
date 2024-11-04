@@ -1,0 +1,10 @@
+packages/
+vs_arch2_FirstPin/
+.vs/
+bin/
+x64/
+obj/
+Debug/
+ipch/
+*.obj
+*.db
