@@ -9,11 +9,8 @@
 #endif
 
 #include "resource.h"		// 주 기호입니다.
-
-
-// CCalculatorApp:
-// 이 클래스의 구현에 대해서는 Calculator.cpp을 참조하십시오.
-//
+#include <iostream>
+#include <stack>
 
 class CCalculatorApp : public CWinApp
 {
@@ -25,7 +22,7 @@ public:
 	virtual BOOL InitInstance();
 
 // 구현입니다.
-
+	static std::stack<double> calculator_memory;
 	DECLARE_MESSAGE_MAP()
 };
 

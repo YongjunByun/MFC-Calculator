@@ -17,9 +17,9 @@ BEGIN_MESSAGE_MAP(CCalculatorApp, CWinApp)
 	ON_COMMAND(ID_HELP, &CWinApp::OnHelp)
 END_MESSAGE_MAP()
 
+std::stack<double> CCalculatorApp::calculator_memory;
 
 // CCalculatorApp 생성
-
 CCalculatorApp::CCalculatorApp()
 {
 	// 다시 시작 관리자 지원
