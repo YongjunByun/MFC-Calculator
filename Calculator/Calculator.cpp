@@ -6,6 +6,7 @@
 #include "Calculator.h"
 #include "CalculatorDlg.h"
 
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -17,7 +18,7 @@ BEGIN_MESSAGE_MAP(CCalculatorApp, CWinApp)
 	ON_COMMAND(ID_HELP, &CWinApp::OnHelp)
 END_MESSAGE_MAP()
 
-std::stack<double> CCalculatorApp::calculator_memory;
+std::vector<CString> CCalculatorApp::calculator_memory;
 
 // CCalculatorApp »ý¼º
 CCalculatorApp::CCalculatorApp()

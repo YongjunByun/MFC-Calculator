@@ -10,7 +10,7 @@
 
 #include "resource.h"		// 주 기호입니다.
 #include <iostream>
-#include <stack>
+#include <vector>
 
 class CCalculatorApp : public CWinApp
 {
@@ -22,7 +22,7 @@ public:
 	virtual BOOL InitInstance();
 
 // 구현입니다.
-	static std::stack<double> calculator_memory;
+	static std::vector<CString> calculator_memory;
 	DECLARE_MESSAGE_MAP()
 };
 

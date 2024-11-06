@@ -6,7 +6,8 @@
 #include "Calculator.h"
 #include "CalculatorDlg.h"
 #include "afxdialogex.h"
-#include "Logic.h"
+#include "MemoryDlg.h"
+#include <math.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -197,14 +198,14 @@ void CCalculatorDlg::ResizeControls() {
 	};
 	CWnd* row1_buttons[] = {
 		GetDlgItem(IDC_BUTTON_PERCENT),
-		GetDlgItem(IDC_BUTTON_SQRT),
-		GetDlgItem(IDC_BUTTON_POW),
-		GetDlgItem(IDC_BUTTON_RECIPROCAL),
-	};
-	CWnd* row2_buttons[] = {
 		GetDlgItem(IDC_BUTTON_CE),
 		GetDlgItem(IDC_BUTTON_C),
-		GetDlgItem(IDC_BUTTON_BACK),
+		GetDlgItem(IDC_BUTTON_BACK)
+	};
+	CWnd* row2_buttons[] = {
+		GetDlgItem(IDC_BUTTON_RECIPROCAL),
+		GetDlgItem(IDC_BUTTON_POW),
+		GetDlgItem(IDC_BUTTON_SQRT),
 		GetDlgItem(IDC_BUTTON_DIV),
 	};
 	CWnd* row3_buttons[] = {
@@ -326,55 +327,71 @@ HCURSOR CCalculatorDlg::OnQueryDragIcon()
 // Memory Clear
 void CCalculatorDlg::OnBnClickedButtonMc()
 {
-	while (!CCalculatorApp::calculator_memory.empty()) CCalculatorApp::calculator_memory.pop();
+	 CCalculatorApp::calculator_memory.clear();
+	GetDlgItem(IDC_BUTTON_MC)->EnableWindow(FALSE);
+	GetDlgItem(IDC_BUTTON_MR)->EnableWindow(FALSE);
+	GetDlgItem(IDC_BUTTON_M)->EnableWindow(FALSE);
 }
 
 // Memory Read
 void CCalculatorDlg::OnBnClickedButtonMr()
 {
-	double memory_var = 0;
-	memory_var = CCalculatorApp::calculator_memory.top();
-	//todo
+	UpdateData(TRUE);
+	CString memory_var = CCalculatorApp::calculator_memory.back();
+	m_work_text_view = memory_var;
+	UpdateData(FALSE);
 }
-
 // Memory Add
 void CCalculatorDlg::OnBnClickedButtonMAdd()
 {
-	double memory_var = 0;
-	//todo
-	CCalculatorApp::calculator_memory.push(memory_var);
-
+	UpdateData(TRUE);
+	if (CCalculatorApp::calculator_memory.empty()) return;
+	CString &memory_var = CCalculatorApp::calculator_memory.back();
+	double num1 = _ttof(memory_var);
+	double num2 = _ttof(m_work_text_view);
+	memory_var.Format(L"%.15g", num1 + num2);
+	UpdateData(FALSE);
 }
 
-
+// Memory Sub
 void CCalculatorDlg::OnBnClickedButtonMSub()
 {
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	UpdateData(TRUE);
+	if (CCalculatorApp::calculator_memory.empty()) return;
+	CString &memory_var = CCalculatorApp::calculator_memory.back();
+	double num1 = _ttof(memory_var);
+	double num2 = _ttof(m_work_text_view);
+	memory_var.Format(L"%.15g", num1 - num2);
+	UpdateData(FALSE);
 }
-
-
+// Memory Save
 void CCalculatorDlg::OnBnClickedButtonMs()
 {
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	CCalculatorApp::calculator_memory.push_back(m_work_text_view);
+
+	GetDlgItem(IDC_BUTTON_MC)->EnableWindow(TRUE);
+	GetDlgItem(IDC_BUTTON_MR)->EnableWindow(TRUE);
+	GetDlgItem(IDC_BUTTON_M)->EnableWindow(TRUE);
+	m_clear_work_text = true;
 }
-
-
+// Show Memory
 void CCalculatorDlg::OnBnClickedButtonM()
 {
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	MemoryDlg dlg;
+	dlg.DoModal();
+	if (CCalculatorApp::calculator_memory.empty()) {
+		GetDlgItem(IDC_BUTTON_MC)->EnableWindow(FALSE);
+		GetDlgItem(IDC_BUTTON_MR)->EnableWindow(FALSE);
+		GetDlgItem(IDC_BUTTON_M)->EnableWindow(FALSE);
+	}
 }
-
-
-
-
-
 void CCalculatorDlg::OnBnClickedButtonCe()
 {
 	UpdateData(TRUE);
 	if (m_clear_work_text == true) {
 		m_clear_work_text = false;
 	}
-	m_work_text_view = "";
+	m_work_text_view = "0";
 	UpdateData(FALSE);
 }
 void CCalculatorDlg::OnBnClickedButtonC()
@@ -383,46 +400,81 @@ void CCalculatorDlg::OnBnClickedButtonC()
 	if (m_clear_work_text == true) {
 		m_clear_work_text = false;
 	}
-	m_work_text_view = "";
-	m_log_text_view = "";
+
+	m_work_text_view = "0";
+	m_log_text_view.Empty();
+	m_operation.Empty();
+	m_first_num.Empty();
+	m_second_num.Empty();
 	UpdateData(FALSE);
 }
 
 
 void CCalculatorDlg::OnBnClickedButtonBack()
 {
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	UpdateData(TRUE);
+	if(m_work_text_view.GetLength() > 0)
+		m_work_text_view.Delete(m_work_text_view.GetLength() - 1, 1);
+	UpdateData(FALSE);
 }
 void CCalculatorDlg::OnBnClickedButtonReciprocal()
 {
 	UpdateData(TRUE);
-	m_work_text_view = Logic::getInstance().get_reciprocal_text(m_work_text_view);
-	//m_log_text_view += CString("sqrt(") + m_work_text_view + CString(")");
-	m_clear_work_text = true;
+	double num = _ttof(m_work_text_view);
+	if (num != 0) {
+		double result = 1.0 / num;
+		m_log_text_view += L"1/(" + m_work_text_view + L")";
+		m_work_text_view.Format(L"%.15g", result);
+	}
+	else {
+		m_work_text_view = L"Error";  // 0으로 나누기 방지
+	}
 	UpdateData(FALSE);
 }
 void CCalculatorDlg::OnBnClickedButtonPercent()
 {
 	UpdateData(TRUE);
-	m_work_text_view = Logic::getInstance().get_percentage_text(m_work_text_view);
-	m_clear_work_text = true;
+	
 	UpdateData(FALSE);
 }
-
 void CCalculatorDlg::OnBnClickedButtonPow()
 {
 	UpdateData(TRUE);
-	m_work_text_view = Logic::getInstance().get_square_text(m_work_text_view);
-	//m_log_text_view += CString("sqrt(") + m_work_text_view + CString(")");
-	m_clear_work_text = true;
+	double root = 0.0;
+	root = pow(_ttof(m_work_text_view), 2);
+	if (!m_operation.IsEmpty()) {
+		m_second_num.Format(L"%.15g", root);
+		m_log_text_view += L"sqr(" + m_work_text_view + L")";
+		Calculate(m_first_num, m_second_num, m_operation);
+	}
+	else {
+		m_first_num.Format(L"%.15g", root);
+		m_log_text_view = L"sqr(" + m_work_text_view + L")";
+	}
+	m_work_text_view.Format(L"%.15g", root);
 	UpdateData(FALSE);
 }
 void CCalculatorDlg::OnBnClickedButtonSqrt()
 {
 	UpdateData(TRUE);
-	m_work_text_view = Logic::getInstance().get_square_root_text(m_work_text_view);
-	//m_log_text_view += CString("sqrt(") + m_work_text_view + CString(")");
-	m_clear_work_text = true;
+	double squareRoot = 0.0;
+	// 음수일 경우 제곱근을 계산할 수 없으므로 예외 처리
+	if (_ttof(m_work_text_view) < 0) {
+		m_work_text_view.Format(_T("ERROR"));
+		UpdateData(FALSE);
+		return;
+	}
+	squareRoot = sqrt(_ttof(m_work_text_view));
+	if (!m_operation.IsEmpty()) {
+		m_second_num.Format(L"%.15g", squareRoot);
+		m_log_text_view += L"√(" + m_work_text_view + L")";
+		Calculate(m_first_num, m_second_num, m_operation);
+	}
+	else {
+		m_first_num.Format(L"%.15g", squareRoot);
+		m_log_text_view = L"√(" + m_work_text_view + L")";
+	}
+	m_work_text_view.Format(L"%.15g", squareRoot);
 	UpdateData(FALSE);
 }
 
@@ -430,137 +482,170 @@ void CCalculatorDlg::OnBnClickedButton0()
 {
 	UpdateData(TRUE);
 	if (m_clear_work_text == true) {
-		m_work_text_view = "";
+		m_work_text_view.Empty();
 		m_clear_work_text = false;
 	}
-	if (m_work_text_view == '0') m_work_text_view = "";
-	m_work_text_view += '0';
+	if (m_work_text_view == "0")
+		m_work_text_view = L"";
+	m_work_text_view += CString(L"0");
 	UpdateData(FALSE);
 }
 void CCalculatorDlg::OnBnClickedButton1()
 {
 	UpdateData(TRUE);
 	if (m_clear_work_text == true) {
-		m_work_text_view = "";
+		m_work_text_view.Empty();
 		m_clear_work_text = false;
 	}
-	if (m_work_text_view == '0') m_work_text_view = "";
-	m_work_text_view += '1';
+	if (m_work_text_view == "0")
+		m_work_text_view = L"";
+	m_work_text_view += CString("1");
 	UpdateData(FALSE);
 }
 void CCalculatorDlg::OnBnClickedButton2()
 {
 	UpdateData(TRUE);
 	if (m_clear_work_text == true) {
-		m_work_text_view = "";
+		m_work_text_view.Empty();
 		m_clear_work_text = false;
 	}
-	if (m_work_text_view == '0') m_work_text_view = "";
-	m_work_text_view += '2';
+	if (m_work_text_view == "0")
+		m_work_text_view = L"";
+	m_work_text_view += CString("2");
 	UpdateData(FALSE);
 }
 void CCalculatorDlg::OnBnClickedButton3()
 {
 	UpdateData(TRUE);
 	if (m_clear_work_text == true) {
-		m_work_text_view = "";
+		m_work_text_view.Empty();
 		m_clear_work_text = false;
 	}
-	if (m_work_text_view == '0') m_work_text_view = "";
-	m_work_text_view += '3';
+	if (m_work_text_view == "0")
+		m_work_text_view = L"";
+	m_work_text_view += CString("3");
 	UpdateData(FALSE);
 }
 void CCalculatorDlg::OnBnClickedButton4()
 {
 	UpdateData(TRUE);
 	if (m_clear_work_text == true) {
-		m_work_text_view = "";
+		m_work_text_view.Empty();
 		m_clear_work_text = false;
 	}
-	if (m_work_text_view == '0') m_work_text_view = "";
-	m_work_text_view += '4';
+	if (m_work_text_view == "0")
+		m_work_text_view = L"";
+	m_work_text_view += CString("4");
 	UpdateData(FALSE);
 }
 void CCalculatorDlg::OnBnClickedButton5()
 {
 	UpdateData(TRUE);
 	if (m_clear_work_text == true) {
-		m_work_text_view = "";
+		m_work_text_view.Empty();
 		m_clear_work_text = false;
 	}
-	if (m_work_text_view == '0') m_work_text_view = "";
-	m_work_text_view += '5';
+	if (m_work_text_view == "0")
+		m_work_text_view = L"";
+	m_work_text_view += CString("5");
 	UpdateData(FALSE);
 }
 void CCalculatorDlg::OnBnClickedButton6()
 {
 	UpdateData(TRUE);
+
 	if (m_clear_work_text == true) {
-		m_work_text_view = "";
+		m_work_text_view.Empty();
 		m_clear_work_text = false;
 	}
-	if (m_work_text_view == '0') m_work_text_view = "";
-	m_work_text_view += '6';
+	if (m_work_text_view == "0")
+		m_work_text_view = L"";
+	m_work_text_view += CString("6");
 	UpdateData(FALSE);
 }
 void CCalculatorDlg::OnBnClickedButton7()
 {
 	UpdateData(TRUE);
 	if (m_clear_work_text == true) {
-		m_work_text_view = "";
+		m_work_text_view.Empty();
 		m_clear_work_text = false;
 	}
-	if (m_work_text_view == '0') m_work_text_view = "";
-	m_work_text_view += '7';
+	if (m_work_text_view == "0")
+		m_work_text_view = L"";
+	m_work_text_view += CString("7");
 	UpdateData(FALSE);
 }
 void CCalculatorDlg::OnBnClickedButton8()
 {
 	UpdateData(TRUE);
 	if (m_clear_work_text == true) {
-		m_work_text_view = "";
+		m_work_text_view.Empty();
 		m_clear_work_text = false;
 	}
-	if (m_work_text_view == '0') m_work_text_view = "";
-	m_work_text_view += '8';
+	if (m_work_text_view == "0")
+		m_work_text_view = L"";
+	m_work_text_view += CString("8");
 	UpdateData(FALSE);
 }
 void CCalculatorDlg::OnBnClickedButton9()
 {
 	UpdateData(TRUE);
 	if (m_clear_work_text == true) {
-		m_work_text_view = "";
+		m_work_text_view.Empty();
 		m_clear_work_text = false;
 	}
-	if (m_work_text_view == '0') m_work_text_view = "";
-	m_work_text_view += '9';
+	if (m_work_text_view == "0")
+		m_work_text_view = L"";
+	m_work_text_view += CString("9");
 	UpdateData(FALSE);
 }
 void CCalculatorDlg::OnBnClickedButtonPlus()
 {
 	UpdateData(TRUE);
-	m_log_text_view += (m_work_text_view + '+');
+	if (!m_operation.IsEmpty()) {
+		Calculate(m_first_num, m_work_text_view, m_operation);
+	}
+	m_first_num = m_work_text_view;
+	
+	m_operation = L"+";
+	m_log_text_view = m_first_num + L"+";
 	m_clear_work_text = true;
 	UpdateData(FALSE);
 }
 void CCalculatorDlg::OnBnClickedButtonSub()
 {
 	UpdateData(TRUE);
-	m_log_text_view += (m_work_text_view + '-');
+	if (!m_operation.IsEmpty()) {
+		Calculate(m_first_num, m_work_text_view, m_operation);
+	}
+	m_first_num = m_work_text_view;
+	m_operation = L"-";
+	m_log_text_view = m_first_num + L"-";
 	m_clear_work_text = true;
 	UpdateData(FALSE);
 }
 void CCalculatorDlg::OnBnClickedButtonDiv()
 {
 	UpdateData(TRUE);
-	m_log_text_view += (m_work_text_view + '/');
+	if (!m_operation.IsEmpty()) {
+		Calculate(m_first_num, m_work_text_view, m_operation);
+	}
+	m_first_num = m_work_text_view;
+	m_operation = L"/";
+	m_log_text_view = m_first_num + L"/";
 	m_clear_work_text = true;
 	UpdateData(FALSE);
 }
 void CCalculatorDlg::OnBnClickedButtonMultiple()
 {
 	UpdateData(TRUE);
-	m_log_text_view += (m_work_text_view + 'x');
+	if (!m_operation.IsEmpty()) {
+		Calculate(m_first_num, m_work_text_view, m_operation);
+	}
+	m_first_num = m_work_text_view;
+
+	m_operation = L"x";
+	m_log_text_view = m_first_num + L"x";
 	m_clear_work_text = true;
 	UpdateData(FALSE);
 }
@@ -568,7 +653,7 @@ void CCalculatorDlg::OnBnClickedButtonNegative()
 {
 	UpdateData(TRUE);
 	// 문자열이 비어있는 경우 처리
-	if (m_work_text_view.IsEmpty()) {
+	if (m_work_text_view.IsEmpty() || m_work_text_view == "0") {
 		return;
 	}
 
@@ -589,25 +674,20 @@ void CCalculatorDlg::OnBnClickedButtonNegative()
 void CCalculatorDlg::OnBnClickedButtonDot()
 {
 	UpdateData(TRUE);
-	if (m_clear_work_text == true) {
-		m_work_text_view = "";
-		m_clear_work_text = false;
-	}
-	m_work_text_view += '.';
+	m_work_text_view += CString(".");
 	UpdateData(FALSE);
 }
 void CCalculatorDlg::OnBnClickedButtonEqual()
 {
 	UpdateData(TRUE);
-	m_log_text_view += m_work_text_view;
-	Logic& logic = Logic::getInstance();
-	logic.set_work_text(m_log_text_view);
-	logic.Calculate();
+	m_second_num = m_work_text_view;  // 두 번째 숫자 저장
+	if (!m_operation.IsEmpty()) {
+		Calculate(m_first_num, m_work_text_view, m_operation);
+	}
+	m_log_text_view = m_first_num + m_operation + m_second_num + L"=";
 	
-	m_work_text_view = logic.get_work_text();
-	m_log_text_view = "";
+	m_operation.Empty();
 	m_clear_work_text = true;
-	
 	UpdateData(FALSE);
 }
 
@@ -659,4 +739,27 @@ void CCalculatorDlg::Change_Buttons_Color() {
 	m_button_plus.SetFaceColor(color_background_btn);
 	m_button_dot.SetFaceColor(color_background_btn);
 	m_button_negative.SetFaceColor(color_background_btn);
+}
+
+void CCalculatorDlg::Set_Work_Text(CString text)
+{
+	UpdateData(TRUE);
+	m_work_text_view = text;
+	m_clear_work_text = true;
+	UpdateData(FALSE);
+}
+
+void CCalculatorDlg::Calculate(CString first_num, CString second_num, CString op) {
+	double num1 = _ttof(first_num);
+	double num2 = _ttof(second_num);
+	double result = 0.0;
+	if (op == "+")
+		result = num1 + num2;
+	else if (op == "-")
+		result = num1 - num2;
+	else if (op == "x")
+		result = num1 * num2;
+	else if (op == "/")
+		result = (num2 != 0) ? num1 / num2 : 0;  // 0으로 나누기 방지
+	m_work_text_view.Format(L"%.15g", result);
 }

@@ -39,6 +39,7 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 public:
+	CString m_first_num, m_second_num, m_operation;
 	afx_msg void OnBnClickedButtonMc();
 	afx_msg void OnBnClickedButtonMr();
 	afx_msg void OnBnClickedButtonMAdd();
@@ -70,8 +71,10 @@ public:
 	afx_msg void OnBnClickedButtonDot();
 	afx_msg void OnBnClickedButtonEqual();
 	CString m_work_text_view;// 화면상에 보이는 텍스트
-	CString m_log_text_view;
-	bool m_clear_work_text = false; // 다음 버튼입력에 화면을 초기화 할지 말지 결정할 변수
+	CString m_log_text_view_front; 
+	CString m_log_text_view; // back
+	bool m_clear_work_text = false; 
+	bool m_clear_log_text = false;
 	afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	bool m_dialog_init_complete = false;
@@ -91,4 +94,6 @@ public:
 	CMFCButton m_button_plus;
 	CMFCButton m_button_dot;
 	CMFCButton m_button_negative;
+	void Set_Work_Text(CString text);
+	void Calculate(CString num1, CString num2, CString op);
 };
