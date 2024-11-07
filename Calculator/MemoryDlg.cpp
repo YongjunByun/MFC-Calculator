@@ -7,6 +7,7 @@
 #include "afxdialogex.h"
 #include "CalculatorDlg.h"
 
+std::vector<CString> MemoryDlg::calculator_memory; // 계산기 메모리 전역변수
 
 // MemoryDlg 대화 상자입니다.
 
@@ -42,7 +43,7 @@ void MemoryDlg::OnBnClickedButtonClear()
 {
 	UpdateData(TRUE);
 	m_listbox_memory.ResetContent();
-	CCalculatorApp::calculator_memory.clear();
+	MemoryDlg::calculator_memory.clear();
 	UpdateData(FALSE);
 }
 
@@ -54,14 +55,13 @@ BOOL MemoryDlg::OnInitDialog()
 	
 	m_listbox_memory.SetFont(&custom_font);
 	// 다이얼로그가 초기화된 후 리스트 박스에 문자열 추가
-	if (!CCalculatorApp::calculator_memory.empty()) {
-		for (int i = CCalculatorApp::calculator_memory.size() - 1; i >= 0; i--) {
-			m_listbox_memory.AddString(CCalculatorApp::calculator_memory[i]);
+	if (!MemoryDlg::calculator_memory.empty()) {
+		for (int i = (int)(MemoryDlg::calculator_memory.size()) - 1; i >= 0; i--) {
+			m_listbox_memory.AddString(MemoryDlg::calculator_memory[i]);
 		}
 	}
 
-	return TRUE;  // return TRUE unless you set the focus to a control
-				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.
+	return TRUE;  
 }
 
 void MemoryDlg::OnLbnDblclkListMemory()

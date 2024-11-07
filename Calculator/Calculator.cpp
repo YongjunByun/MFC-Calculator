@@ -18,7 +18,6 @@ BEGIN_MESSAGE_MAP(CCalculatorApp, CWinApp)
 	ON_COMMAND(ID_HELP, &CWinApp::OnHelp)
 END_MESSAGE_MAP()
 
-std::vector<CString> CCalculatorApp::calculator_memory;
 
 // CCalculatorApp »ý¼º
 CCalculatorApp::CCalculatorApp()

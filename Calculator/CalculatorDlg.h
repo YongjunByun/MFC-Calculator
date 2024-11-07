@@ -1,44 +1,17 @@
-
-// CalculatorDlg.h : 헤더 파일
-//
-
 #pragma once
 #include "afxwin.h"
 #include "afxbutton.h"
 
 
-// CCalculatorDlg 대화 상자
 class CCalculatorDlg : public CDialogEx
 {
-// 생성입니다.
 public:
-	CCalculatorDlg(CWnd* pParent = NULL);	// 표준 생성자입니다.
+	CCalculatorDlg(CWnd* pParent = NULL);
 
 // 대화 상자 데이터입니다.
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_CALCULATOR_DIALOG };
 #endif
-
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 지원입니다.
-private:
-	CRect m_rcMinimumDialog;
-
-// 구현입니다.
-protected:
-	HICON m_hIcon;
-
-	// 생성된 메시지 맵 함수
-	virtual BOOL OnInitDialog();
-	/// <summary>
-	/// 텍스트블록이랑 버튼을 화면비에 맞게 변경할 함수
-	/// </summary>
-	void ResizeControls();
-	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
-	afx_msg void OnPaint();
-	afx_msg HCURSOR OnQueryDragIcon();
-	DECLARE_MESSAGE_MAP()
-public:
 	CString m_first_num, m_second_num, m_operation;
 	afx_msg void OnBnClickedButtonMc();
 	afx_msg void OnBnClickedButtonMr();
@@ -70,16 +43,9 @@ public:
 	afx_msg void OnBnClickedButton0();
 	afx_msg void OnBnClickedButtonDot();
 	afx_msg void OnBnClickedButtonEqual();
-	CString m_work_text_view;// 화면상에 보이는 텍스트
-	CString m_log_text_view_front; 
-	CString m_log_text_view; // back
-	bool m_clear_work_text = false; 
-	bool m_clear_log_text = false;
 	afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
-	bool m_dialog_init_complete = false;
 
-	void Change_Buttons_Color(); //버튼색깔 일괄변경 함수
 	CMFCButton m_button_equal;
 	CMFCButton m_button_percent;
 	CMFCButton m_button_ce;
@@ -94,6 +60,40 @@ public:
 	CMFCButton m_button_plus;
 	CMFCButton m_button_dot;
 	CMFCButton m_button_negative;
+
 	void Set_Work_Text(CString text);
+	CBrush m_backBrush; //다이얼로그 배경색
+
+protected:
+	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 지원입니다.
+	HICON m_hIcon;
+
+	// 생성된 메시지 맵 함수
+	virtual BOOL OnInitDialog();
+
+	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
+	afx_msg void OnPaint();
+	afx_msg HCURSOR OnQueryDragIcon();
+	DECLARE_MESSAGE_MAP()
+
+private:
+	CRect m_rcMinimumDialog;
+	CString m_work_text_view;// 화면상에 보이는 텍스트
+	CString m_log_text_view_front;
+	CString m_log_text_view; // back
+	bool m_clear_work_text = false;
+	bool m_dialog_init_complete = false;
 	void Calculate(CString num1, CString num2, CString op);
+	void Double2WorkText(const double number, CString & work_text);
+
+	/// <summary>
+	/// 텍스트블록이랑 버튼을 화면비에 맞게 변경할 함수
+	/// </summary>
+	void ResizeControls();
+	void Change_Buttons_Color(); //버튼색깔 일괄변경 함수
+
+public:
+	afx_msg void OnEnChangeEditWork();
+	BOOL PreTranslateMessage(MSG * pMsg) override;
+	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 };

@@ -1,7 +1,3 @@
-
-// Calculator.h : PROJECT_NAME 응용 프로그램에 대한 주 헤더 파일입니다.
-//
-
 #pragma once
 
 #ifndef __AFXWIN_H__
@@ -17,12 +13,9 @@ class CCalculatorApp : public CWinApp
 public:
 	CCalculatorApp();
 
-// 재정의입니다.
 public:
 	virtual BOOL InitInstance();
 
-// 구현입니다.
-	static std::vector<CString> calculator_memory;
 	DECLARE_MESSAGE_MAP()
 };
 

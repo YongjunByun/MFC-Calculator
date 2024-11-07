@@ -57,7 +57,8 @@ CCalculatorDlg::CCalculatorDlg(CWnd* pParent /*=NULL*/)
 	, m_work_text_view(_T("0"))
 	, m_log_text_view(_T(""))
 {
-	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	m_hIcon = AfxGetApp()->LoadIcon(IDI_ICON1);
+	m_backBrush.CreateSolidBrush(RGB(255, 255, 255));
 }
 
 void CCalculatorDlg::DoDataExchange(CDataExchange* pDX)
@@ -118,6 +119,9 @@ BEGIN_MESSAGE_MAP(CCalculatorDlg, CDialogEx)
 	ON_WM_GETMINMAXINFO()
 	ON_WM_SIZE()
 	ON_WM_DRAWITEM()
+	ON_EN_CHANGE(IDC_EDIT_WORK, &CCalculatorDlg::OnEnChangeEditWork)
+	ON_WM_KEYDOWN()
+	ON_WM_CTLCOLOR()
 END_MESSAGE_MAP()
 
 
@@ -250,7 +254,7 @@ void CCalculatorDlg::ResizeControls() {
 	for (int i = 0; i < row0_buttonCount; ++i)
 	{
 		int xPos = 30 + (row0_buttonWidth + buttonSpacing) * i;  // 시작 여백 + (버튼 너비 + 간격) * 인덱스
-		row0_buttons[i]->SetWindowPos(nullptr, xPos, clientRect.Height() * 0.30 + row0_buttonHeight, row0_buttonWidth, row0_buttonHeight, SWP_NOZORDER);
+		row0_buttons[i]->SetWindowPos(nullptr, xPos, (int)(clientRect.Height() * 0.30 + row0_buttonHeight), row0_buttonWidth, row0_buttonHeight, SWP_NOZORDER);
 	}
 	// 두번째 row부터의 버튼 정렬
 	for (int i = 0; i < col_buttonCount-1; ++i) {
@@ -258,17 +262,17 @@ void CCalculatorDlg::ResizeControls() {
 		{
 			int xPos = 30 + (row1_buttonWidth + buttonSpacing) * j;  // 시작 여백 + (버튼 너비 + 간격) * 인덱스
 			if(i==0)
-				row1_buttons[j]->SetWindowPos(nullptr, xPos, clientRect.Height() * 0.30 + row1_buttonHeight, row1_buttonWidth, row1_buttonHeight, SWP_NOZORDER);
+				row1_buttons[j]->SetWindowPos(nullptr, xPos, (int)(clientRect.Height() * 0.30 + row1_buttonHeight), row1_buttonWidth, row1_buttonHeight, SWP_NOZORDER);
 			else if (i == 1)
-				row2_buttons[j]->SetWindowPos(nullptr, xPos, clientRect.Height() * 0.30 + row1_buttonHeight * 2, row1_buttonWidth, row1_buttonHeight, SWP_NOZORDER);
+				row2_buttons[j]->SetWindowPos(nullptr, xPos, (int)(clientRect.Height() * 0.30 + row1_buttonHeight * 2), row1_buttonWidth, row1_buttonHeight, SWP_NOZORDER);
 			else if (i == 2)
-				row3_buttons[j]->SetWindowPos(nullptr, xPos, clientRect.Height() * 0.30 + row1_buttonHeight * 3, row1_buttonWidth, row1_buttonHeight, SWP_NOZORDER);
+				row3_buttons[j]->SetWindowPos(nullptr, xPos, (int)(clientRect.Height() * 0.30 + row1_buttonHeight * 3), row1_buttonWidth, row1_buttonHeight, SWP_NOZORDER);
 			else if (i == 3)
-				row4_buttons[j]->SetWindowPos(nullptr, xPos, clientRect.Height() * 0.30 + row1_buttonHeight * 4, row1_buttonWidth, row1_buttonHeight, SWP_NOZORDER);
+				row4_buttons[j]->SetWindowPos(nullptr, xPos, (int)(clientRect.Height() * 0.30 + row1_buttonHeight * 4), row1_buttonWidth, row1_buttonHeight, SWP_NOZORDER);
 			else if (i == 4)
-				row5_buttons[j]->SetWindowPos(nullptr, xPos, clientRect.Height() * 0.30 + row1_buttonHeight * 5, row1_buttonWidth, row1_buttonHeight, SWP_NOZORDER);
+				row5_buttons[j]->SetWindowPos(nullptr, xPos, (int)(clientRect.Height() * 0.30 + row1_buttonHeight * 5), row1_buttonWidth, row1_buttonHeight, SWP_NOZORDER);
 			else if (i == 5)
-				row6_buttons[j]->SetWindowPos(nullptr, xPos, clientRect.Height() * 0.30 + row1_buttonHeight * 6, row1_buttonWidth, row1_buttonHeight, SWP_NOZORDER);
+				row6_buttons[j]->SetWindowPos(nullptr, xPos, (int)(clientRect.Height() * 0.30 + row1_buttonHeight * 6), row1_buttonWidth, row1_buttonHeight, SWP_NOZORDER);
 		}
 	}
 }
@@ -327,7 +331,7 @@ HCURSOR CCalculatorDlg::OnQueryDragIcon()
 // Memory Clear
 void CCalculatorDlg::OnBnClickedButtonMc()
 {
-	 CCalculatorApp::calculator_memory.clear();
+	MemoryDlg::calculator_memory.clear();
 	GetDlgItem(IDC_BUTTON_MC)->EnableWindow(FALSE);
 	GetDlgItem(IDC_BUTTON_MR)->EnableWindow(FALSE);
 	GetDlgItem(IDC_BUTTON_M)->EnableWindow(FALSE);
@@ -337,19 +341,20 @@ void CCalculatorDlg::OnBnClickedButtonMc()
 void CCalculatorDlg::OnBnClickedButtonMr()
 {
 	UpdateData(TRUE);
-	CString memory_var = CCalculatorApp::calculator_memory.back();
+	CString memory_var = MemoryDlg::calculator_memory.back();
 	m_work_text_view = memory_var;
+	m_clear_work_text = true;
 	UpdateData(FALSE);
 }
 // Memory Add
 void CCalculatorDlg::OnBnClickedButtonMAdd()
 {
 	UpdateData(TRUE);
-	if (CCalculatorApp::calculator_memory.empty()) return;
-	CString &memory_var = CCalculatorApp::calculator_memory.back();
+	if (MemoryDlg::calculator_memory.empty()) return;
+	CString &memory_var = MemoryDlg::calculator_memory.back();
 	double num1 = _ttof(memory_var);
 	double num2 = _ttof(m_work_text_view);
-	memory_var.Format(L"%.15g", num1 + num2);
+	Double2WorkText(num1 + num2, memory_var);
 	UpdateData(FALSE);
 }
 
@@ -357,17 +362,17 @@ void CCalculatorDlg::OnBnClickedButtonMAdd()
 void CCalculatorDlg::OnBnClickedButtonMSub()
 {
 	UpdateData(TRUE);
-	if (CCalculatorApp::calculator_memory.empty()) return;
-	CString &memory_var = CCalculatorApp::calculator_memory.back();
+	if (MemoryDlg::calculator_memory.empty()) return;
+	CString &memory_var = MemoryDlg::calculator_memory.back();
 	double num1 = _ttof(memory_var);
 	double num2 = _ttof(m_work_text_view);
-	memory_var.Format(L"%.15g", num1 - num2);
+	Double2WorkText(num1 - num2, memory_var);
 	UpdateData(FALSE);
 }
 // Memory Save
 void CCalculatorDlg::OnBnClickedButtonMs()
 {
-	CCalculatorApp::calculator_memory.push_back(m_work_text_view);
+	MemoryDlg::calculator_memory.push_back(m_work_text_view);
 
 	GetDlgItem(IDC_BUTTON_MC)->EnableWindow(TRUE);
 	GetDlgItem(IDC_BUTTON_MR)->EnableWindow(TRUE);
@@ -379,7 +384,7 @@ void CCalculatorDlg::OnBnClickedButtonM()
 {
 	MemoryDlg dlg;
 	dlg.DoModal();
-	if (CCalculatorApp::calculator_memory.empty()) {
+	if (MemoryDlg::calculator_memory.empty()) {
 		GetDlgItem(IDC_BUTTON_MC)->EnableWindow(FALSE);
 		GetDlgItem(IDC_BUTTON_MR)->EnableWindow(FALSE);
 		GetDlgItem(IDC_BUTTON_M)->EnableWindow(FALSE);
@@ -413,28 +418,45 @@ void CCalculatorDlg::OnBnClickedButtonC()
 void CCalculatorDlg::OnBnClickedButtonBack()
 {
 	UpdateData(TRUE);
-	if(m_work_text_view.GetLength() > 0)
+	if (m_work_text_view.GetLength() > 0)
 		m_work_text_view.Delete(m_work_text_view.GetLength() - 1, 1);
+	if (m_work_text_view.GetLength() == 0)
+		m_work_text_view += L'0';
 	UpdateData(FALSE);
 }
 void CCalculatorDlg::OnBnClickedButtonReciprocal()
 {
 	UpdateData(TRUE);
 	double num = _ttof(m_work_text_view);
-	if (num != 0) {
-		double result = 1.0 / num;
+	double result = 1.0 / num;
+	if (num == 0) {
+		m_work_text_view = L"0 으로 나눌 수 없습니다";
+		return;
+	}
+	if (!m_operation.IsEmpty()) {
+		m_second_num.Format(L"%.15lf", result);
 		m_log_text_view += L"1/(" + m_work_text_view + L")";
-		m_work_text_view.Format(L"%.15g", result);
 	}
 	else {
-		m_work_text_view = L"Error";  // 0으로 나누기 방지
+		m_first_num.Format(L"%.15lf", result);
+		m_log_text_view = L"1/(" + m_work_text_view + L")";
 	}
+	Double2WorkText(result, m_work_text_view);
 	UpdateData(FALSE);
 }
 void CCalculatorDlg::OnBnClickedButtonPercent()
 {
 	UpdateData(TRUE);
-	
+	double percent = 0.0;
+	if (m_operation.IsEmpty()) return;
+
+	if (m_operation == "x" || m_operation == "/") 
+		percent = _ttof(m_work_text_view) / 100.0;
+	else if (m_operation == "+" || m_operation == "-") 
+		percent = _ttof(m_work_text_view) * _ttof(m_work_text_view) / 100.0;
+
+	m_second_num.Format(L"%.15lf", percent);
+	Double2WorkText(percent, m_work_text_view);
 	UpdateData(FALSE);
 }
 void CCalculatorDlg::OnBnClickedButtonPow()
@@ -443,15 +465,15 @@ void CCalculatorDlg::OnBnClickedButtonPow()
 	double root = 0.0;
 	root = pow(_ttof(m_work_text_view), 2);
 	if (!m_operation.IsEmpty()) {
-		m_second_num.Format(L"%.15g", root);
+		m_second_num.Format(L"%.15lf", root);
 		m_log_text_view += L"sqr(" + m_work_text_view + L")";
 		Calculate(m_first_num, m_second_num, m_operation);
 	}
 	else {
-		m_first_num.Format(L"%.15g", root);
+		m_first_num.Format(L"%.15lf", root);
 		m_log_text_view = L"sqr(" + m_work_text_view + L")";
 	}
-	m_work_text_view.Format(L"%.15g", root);
+	Double2WorkText(root, m_work_text_view);
 	UpdateData(FALSE);
 }
 void CCalculatorDlg::OnBnClickedButtonSqrt()
@@ -466,15 +488,15 @@ void CCalculatorDlg::OnBnClickedButtonSqrt()
 	}
 	squareRoot = sqrt(_ttof(m_work_text_view));
 	if (!m_operation.IsEmpty()) {
-		m_second_num.Format(L"%.15g", squareRoot);
+		m_second_num.Format(L"%.15lf", squareRoot);
 		m_log_text_view += L"√(" + m_work_text_view + L")";
 		Calculate(m_first_num, m_second_num, m_operation);
 	}
 	else {
-		m_first_num.Format(L"%.15g", squareRoot);
+		m_first_num.Format(L"%.15lf", squareRoot);
 		m_log_text_view = L"√(" + m_work_text_view + L")";
 	}
-	m_work_text_view.Format(L"%.15g", squareRoot);
+	Double2WorkText(squareRoot, m_work_text_view);
 	UpdateData(FALSE);
 }
 
@@ -652,11 +674,13 @@ void CCalculatorDlg::OnBnClickedButtonMultiple()
 void CCalculatorDlg::OnBnClickedButtonNegative()
 {
 	UpdateData(TRUE);
-	// 문자열이 비어있는 경우 처리
-	if (m_work_text_view.IsEmpty() || m_work_text_view == "0") {
+	if (m_clear_work_text == true) {
+		m_log_text_view.Empty();
+		m_clear_work_text = false;
+	}
+	if (m_work_text_view == L"0") {
 		return;
 	}
-
 	// 첫 번째 문자가 '-'이면 제거
 	if (m_work_text_view[0] == '-') {
 		m_work_text_view.Delete(0); // 첫 번째 문자 삭제
@@ -674,6 +698,14 @@ void CCalculatorDlg::OnBnClickedButtonNegative()
 void CCalculatorDlg::OnBnClickedButtonDot()
 {
 	UpdateData(TRUE);
+	if (m_clear_work_text == true) {
+		m_work_text_view.Empty();
+		m_work_text_view += CString("0");
+		m_clear_work_text = false;
+	}
+	if (m_work_text_view.Find(L'.') != -1) {
+		return;
+	}
 	m_work_text_view += CString(".");
 	UpdateData(FALSE);
 }
@@ -694,7 +726,6 @@ void CCalculatorDlg::OnBnClickedButtonEqual()
 
 void CCalculatorDlg::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 {
-	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
 	lpMMI->ptMinTrackSize.x = m_rcMinimumDialog.Width();
 	lpMMI->ptMinTrackSize.y = m_rcMinimumDialog.Height();
 	CDialogEx::OnGetMinMaxInfo(lpMMI);
@@ -709,7 +740,9 @@ void CCalculatorDlg::OnSize(UINT nType, int cx, int cy)
 }
 
 void CCalculatorDlg::Change_Buttons_Color() {
-	const COLORREF color_background_btn = RGB(180, 180, 180);
+	const COLORREF color_background_btn = RGB(220, 220, 220);
+	const COLORREF color_blue_btn = RGB(0, 90, 158);
+
 	m_button_equal.EnableWindowsTheming(FALSE);
 	m_button_percent.EnableWindowsTheming(FALSE);
 	m_button_ce.EnableWindowsTheming(FALSE);
@@ -725,7 +758,7 @@ void CCalculatorDlg::Change_Buttons_Color() {
 	m_button_dot.EnableWindowsTheming(FALSE);
 	m_button_negative.EnableWindowsTheming(FALSE);
 
-	m_button_equal.SetFaceColor(color_background_btn);
+	m_button_equal.SetFaceColor(color_blue_btn);
 	m_button_percent.SetFaceColor(color_background_btn);
 	m_button_ce.SetFaceColor(color_background_btn);
 	m_button_c.SetFaceColor(color_background_btn);
@@ -759,7 +792,102 @@ void CCalculatorDlg::Calculate(CString first_num, CString second_num, CString op
 		result = num1 - num2;
 	else if (op == "x")
 		result = num1 * num2;
-	else if (op == "/")
-		result = (num2 != 0) ? num1 / num2 : 0;  // 0으로 나누기 방지
-	m_work_text_view.Format(L"%.15g", result);
+	else if (op == "/") {
+		result = num1 / num2;
+		if (num2 == 0) {
+			m_work_text_view = L"0 으로 나눌 수 없습니다";
+			return;
+		}
+	}
+	Double2WorkText(result, m_work_text_view);
+}
+
+inline void CCalculatorDlg::Double2WorkText(const double number, CString& work_text) {
+	work_text.Format(L"%.15lf", number);
+
+	//int dotPos = work_text.Find(L'.');
+	//if (dotPos == -1)
+	//	dotPos = work_text.GetLength();
+	//for (int i = dotPos - 3; i > 0; i -= 3){
+	//	work_text.Insert(i, L",");
+	//}
+	work_text.TrimRight(L'0');
+	if (work_text[work_text.GetLength() - 1] == L'.')
+		work_text.Delete(work_text.GetLength() - 1);
+}
+
+void CCalculatorDlg::OnEnChangeEditWork()
+{
+
+}
+BOOL CCalculatorDlg::PreTranslateMessage(MSG* pMsg) {
+	if (pMsg->message == WM_KEYDOWN) { 
+		switch(pMsg->wParam) {
+		case VK_NUMPAD0:
+			OnBnClickedButton0();
+			break;
+		case VK_NUMPAD1:
+			OnBnClickedButton1();
+			break;
+		case VK_NUMPAD2:
+			OnBnClickedButton2();
+			break;
+		case VK_NUMPAD3:
+			OnBnClickedButton3();
+			break;
+		case VK_NUMPAD4:
+			OnBnClickedButton4();
+			break;
+		case VK_NUMPAD5:
+			OnBnClickedButton5();
+			break;
+		case VK_NUMPAD6:
+			OnBnClickedButton6();
+			break;
+		case VK_NUMPAD7:
+			OnBnClickedButton7();
+			break;
+		case VK_NUMPAD8:
+			OnBnClickedButton8();
+			break;
+		case VK_NUMPAD9:
+			OnBnClickedButton9();
+			break;
+		case VK_MULTIPLY:
+			OnBnClickedButtonMultiple();
+			break;
+		case VK_DIVIDE:
+			OnBnClickedButtonDiv();
+			break;
+		case VK_ADD:
+			OnBnClickedButtonPlus();
+			break;
+		case VK_SUBTRACT:
+			OnBnClickedButtonSub();
+			break;
+		case VK_RETURN:
+			OnBnClickedButtonEqual();
+			break;
+		case VK_DELETE:
+			OnBnClickedButtonBack();
+			break;
+		case VK_ESCAPE:
+			OnBnClickedButtonC();
+			break;
+		}
+		return TRUE;
+	}     
+	return CDialogEx::PreTranslateMessage(pMsg); 
+}
+
+
+
+HBRUSH CCalculatorDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
+{
+	HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
+	//pDC->SetBkColor(RGB(255, 255, 255));
+	pDC->SetBkMode(TRANSPARENT);
+	hbr = (HBRUSH)m_backBrush;
+
+	return hbr;
 }
