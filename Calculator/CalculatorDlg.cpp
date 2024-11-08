@@ -435,10 +435,12 @@ void CCalculatorDlg::OnBnClickedButtonReciprocal()
 	}
 	if (!m_operation.IsEmpty()) {
 		m_second_num.Format(L"%.15lf", result);
+		m_work_text_view.TrimRight(L'.');
 		m_log_text_view += L"1/(" + m_work_text_view + L")";
 	}
 	else {
 		m_first_num.Format(L"%.15lf", result);
+		m_work_text_view.TrimRight(L'.');
 		m_log_text_view = L"1/(" + m_work_text_view + L")";
 	}
 	Double2WorkText(result, m_work_text_view);
@@ -466,11 +468,13 @@ void CCalculatorDlg::OnBnClickedButtonPow()
 	root = pow(_ttof(m_work_text_view), 2);
 	if (!m_operation.IsEmpty()) {
 		m_second_num.Format(L"%.15lf", root);
+		m_work_text_view.TrimRight(L'.');
 		m_log_text_view += L"sqr(" + m_work_text_view + L")";
 		Calculate(m_first_num, m_second_num, m_operation);
 	}
 	else {
 		m_first_num.Format(L"%.15lf", root);
+		m_work_text_view.TrimRight(L'.');
 		m_log_text_view = L"sqr(" + m_work_text_view + L")";
 	}
 	Double2WorkText(root, m_work_text_view);
@@ -489,11 +493,13 @@ void CCalculatorDlg::OnBnClickedButtonSqrt()
 	squareRoot = sqrt(_ttof(m_work_text_view));
 	if (!m_operation.IsEmpty()) {
 		m_second_num.Format(L"%.15lf", squareRoot);
+		m_work_text_view.TrimRight(L'.');
 		m_log_text_view += L"√(" + m_work_text_view + L")";
 		Calculate(m_first_num, m_second_num, m_operation);
 	}
 	else {
 		m_first_num.Format(L"%.15lf", squareRoot);
+		m_work_text_view.TrimRight(L'.');
 		m_log_text_view = L"√(" + m_work_text_view + L")";
 	}
 	Double2WorkText(squareRoot, m_work_text_view);
@@ -628,7 +634,8 @@ void CCalculatorDlg::OnBnClickedButtonPlus()
 		Calculate(m_first_num, m_work_text_view, m_operation);
 	}
 	m_first_num = m_work_text_view;
-	
+	m_first_num.TrimRight(L'.');
+
 	m_operation = L"+";
 	m_log_text_view = m_first_num + L"+";
 	m_clear_work_text = true;
@@ -641,6 +648,8 @@ void CCalculatorDlg::OnBnClickedButtonSub()
 		Calculate(m_first_num, m_work_text_view, m_operation);
 	}
 	m_first_num = m_work_text_view;
+	m_first_num.TrimRight(L'.');
+
 	m_operation = L"-";
 	m_log_text_view = m_first_num + L"-";
 	m_clear_work_text = true;
@@ -653,6 +662,8 @@ void CCalculatorDlg::OnBnClickedButtonDiv()
 		Calculate(m_first_num, m_work_text_view, m_operation);
 	}
 	m_first_num = m_work_text_view;
+	m_first_num.TrimRight(L'.');
+
 	m_operation = L"/";
 	m_log_text_view = m_first_num + L"/";
 	m_clear_work_text = true;
@@ -665,6 +676,7 @@ void CCalculatorDlg::OnBnClickedButtonMultiple()
 		Calculate(m_first_num, m_work_text_view, m_operation);
 	}
 	m_first_num = m_work_text_view;
+	m_first_num.TrimRight(L'.');
 
 	m_operation = L"x";
 	m_log_text_view = m_first_num + L"x";
@@ -681,12 +693,10 @@ void CCalculatorDlg::OnBnClickedButtonNegative()
 	if (m_work_text_view == L"0") {
 		return;
 	}
-	// 첫 번째 문자가 '-'이면 제거
 	if (m_work_text_view[0] == '-') {
 		m_work_text_view.Delete(0); // 첫 번째 문자 삭제
 	}
 	else {
-		// 첫 번째 문자가 '-'가 아니라면 앞에 '-' 추가
 		m_work_text_view.Insert(0, '-'); // 앞에 '-' 추가
 	}
 	if (m_clear_work_text == true) {
@@ -713,6 +723,7 @@ void CCalculatorDlg::OnBnClickedButtonEqual()
 {
 	UpdateData(TRUE);
 	m_second_num = m_work_text_view;  // 두 번째 숫자 저장
+	m_second_num.TrimRight(L'.');
 	if (!m_operation.IsEmpty()) {
 		Calculate(m_first_num, m_work_text_view, m_operation);
 	}
