@@ -6,6 +6,10 @@
 #include "ImageViewer.h"
 #include "ImageViewerDlg.h"
 #include "afxdialogex.h"
+#include "FileIODlg.h"
+#include "ImageDisplayDlg.h"
+#include "HistogramDisplayDlg.h"
+#include "ProcessingDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -53,6 +57,15 @@ CImageViewerDlg::CImageViewerDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_IMAGEVIEWER_DIALOG, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	m_FileIODlg = new FileIODlg;
+	m_HistogramDisplayDlg = new HistogramDisplayDlg;
+	m_ProcessingDlg = new ProcessingDlg;
+	m_ImageDisplayDlg = new ImageDisplayDlg;
+}
+
+ImageDisplayDlg* CImageViewerDlg::GetImageDisplayDlg()
+{
+	return m_ImageDisplayDlg;
 }
 
 void CImageViewerDlg::DoDataExchange(CDataExchange* pDX)
@@ -65,6 +78,7 @@ BEGIN_MESSAGE_MAP(CImageViewerDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 
@@ -74,9 +88,6 @@ BOOL CImageViewerDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
 
-	// 시스템 메뉴에 "정보..." 메뉴 항목을 추가합니다.
-
-	// IDM_ABOUTBOX는 시스템 명령 범위에 있어야 합니다.
 	ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
 	ASSERT(IDM_ABOUTBOX < 0xF000);
 
@@ -94,13 +105,19 @@ BOOL CImageViewerDlg::OnInitDialog()
 		}
 	}
 
-	// 이 대화 상자의 아이콘을 설정합니다.  응용 프로그램의 주 창이 대화 상자가 아닐 경우에는
-	//  프레임워크가 이 작업을 자동으로 수행합니다.
-	SetIcon(m_hIcon, TRUE);			// 큰 아이콘을 설정합니다.
-	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
+	SetIcon(m_hIcon, TRUE);	
+	SetIcon(m_hIcon, FALSE);
 
+	int dialogWidth = 1800;
+	int dialogHeight = 1400;
+	SetWindowPos(NULL, 0, 0, dialogWidth, dialogHeight, SWP_NOMOVE | SWP_NOZORDER);
 
-
+	m_FileIODlg->Create(IDD_FILE_IO_VIEW, this);
+	m_HistogramDisplayDlg->Create(IDD_HISTOGRAM_VIEW, this);
+	m_ProcessingDlg->Create(IDD_PROCESSING_VIEW, this);
+	m_ImageDisplayDlg->Create(IDD_IMAGEDISPLAY_VIEW, this);
+	ResizeDlgs();
+	m_isInitialized = true;
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
 
@@ -155,3 +172,33 @@ HCURSOR CImageViewerDlg::OnQueryDragIcon()
 
 
 
+
+
+void CImageViewerDlg::OnSize(UINT nType, int cx, int cy)
+{
+	CDialogEx::OnSize(nType, cx, cy);
+	if (m_isInitialized == false)
+		return;
+	ResizeDlgs();
+}
+
+void CImageViewerDlg::ResizeDlgs() {
+	CRect clientRect;
+	GetClientRect(&clientRect);
+	int col1Width = (int)(clientRect.Width() * 0.25);  // 1열: 25%
+	int col2Width = (int)(clientRect.Width() * 0.75);  // 2열: 75%
+	int row1Height = (int)(clientRect.Height() / 10 * 2); // 1행 20%
+	int row2Height = (int)(clientRect.Height() / 10 * 4); // 1행 40%
+	int row3Height = (int)(clientRect.Height() / 10 * 4); // 1행 40%
+
+	m_HistogramDisplayDlg->SetWindowPos(NULL, 0, 0, col1Width, row1Height, SWP_NOZORDER);
+	m_FileIODlg->SetWindowPos(NULL, 0, row1Height, col1Width, row2Height, SWP_NOZORDER);
+	m_ProcessingDlg->SetWindowPos(NULL, 0, row1Height + row2Height, col1Width, row3Height, SWP_NOZORDER);
+	// 2열: m_ImageDisplayDlg를 꽉 채우도록 배치
+	m_ImageDisplayDlg->SetWindowPos(NULL, col1Width, 0, col2Width, clientRect.Height(), SWP_NOZORDER);
+
+	m_HistogramDisplayDlg->ShowWindow(SW_SHOW);
+	m_FileIODlg->ShowWindow(SW_SHOW);
+	m_ProcessingDlg->ShowWindow(SW_SHOW);
+	m_ImageDisplayDlg->ShowWindow(SW_SHOW);
+}

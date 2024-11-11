@@ -185,22 +185,28 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="FileIODlg.h" />
+    <ClInclude Include="HistogramDisplayDlg.h" />
+    <ClInclude Include="ImageDisplayDlg.h" />
     <ClInclude Include="ImageProcessing.h" />
-    <ClInclude Include="ImageViewDlg.h" />
     <ClInclude Include="ImageViewer.h" />
     <ClInclude Include="ImageViewerDlg.h" />
     <ClInclude Include="Mat.h" />
+    <ClInclude Include="ProcessingDlg.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="test.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="FileIODlg.cpp" />
+    <ClCompile Include="HistogramDisplayDlg.cpp" />
+    <ClCompile Include="ImageDisplayDlg.cpp" />
     <ClCompile Include="ImageProcessing.cpp" />
-    <ClCompile Include="ImageViewDlg.cpp" />
     <ClCompile Include="ImageViewer.cpp" />
     <ClCompile Include="ImageViewerDlg.cpp" />
     <ClCompile Include="Mat.cpp" />
+    <ClCompile Include="ProcessingDlg.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
