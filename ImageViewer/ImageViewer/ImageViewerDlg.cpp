@@ -63,9 +63,30 @@ CImageViewerDlg::CImageViewerDlg(CWnd* pParent /*=NULL*/)
 	m_ImageDisplayDlg = new ImageDisplayDlg;
 }
 
+CImageViewerDlg::~CImageViewerDlg()
+{
+	delete m_FileIODlg;
+	delete m_HistogramDisplayDlg;
+	delete m_ProcessingDlg;
+	delete m_ImageDisplayDlg;
+}
+
+void CImageViewerDlg::OnSize(UINT nType, int cx, int cy)
+{
+	CDialogEx::OnSize(nType, cx, cy);
+	if (m_isInitialized == false)
+		return;
+	ResizeDlgs();
+}
+
 ImageDisplayDlg* CImageViewerDlg::GetImageDisplayDlg()
 {
 	return m_ImageDisplayDlg;
+}
+
+HistogramDisplayDlg * CImageViewerDlg::GetHistogramDisplayDlg()
+{
+	return m_HistogramDisplayDlg;
 }
 
 void CImageViewerDlg::DoDataExchange(CDataExchange* pDX)
@@ -108,8 +129,8 @@ BOOL CImageViewerDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);	
 	SetIcon(m_hIcon, FALSE);
 
-	int dialogWidth = 1800;
-	int dialogHeight = 1400;
+	int dialogWidth = 1280;
+	int dialogHeight = 960;
 	SetWindowPos(NULL, 0, 0, dialogWidth, dialogHeight, SWP_NOMOVE | SWP_NOZORDER);
 
 	m_FileIODlg->Create(IDD_FILE_IO_VIEW, this);
@@ -171,24 +192,13 @@ HCURSOR CImageViewerDlg::OnQueryDragIcon()
 }
 
 
-
-
-
-void CImageViewerDlg::OnSize(UINT nType, int cx, int cy)
-{
-	CDialogEx::OnSize(nType, cx, cy);
-	if (m_isInitialized == false)
-		return;
-	ResizeDlgs();
-}
-
 void CImageViewerDlg::ResizeDlgs() {
 	CRect clientRect;
 	GetClientRect(&clientRect);
 	int col1Width = (int)(clientRect.Width() * 0.25);  // 1凯: 25%
 	int col2Width = (int)(clientRect.Width() * 0.75);  // 2凯: 75%
-	int row1Height = (int)(clientRect.Height() / 10 * 2); // 1青 20%
-	int row2Height = (int)(clientRect.Height() / 10 * 4); // 1青 40%
+	int row1Height = (int)(clientRect.Height() / 10 * 3); // 1青 30%
+	int row2Height = (int)(clientRect.Height() / 10 * 3); // 1青 30%
 	int row3Height = (int)(clientRect.Height() / 10 * 4); // 1青 40%
 
 	m_HistogramDisplayDlg->SetWindowPos(NULL, 0, 0, col1Width, row1Height, SWP_NOZORDER);

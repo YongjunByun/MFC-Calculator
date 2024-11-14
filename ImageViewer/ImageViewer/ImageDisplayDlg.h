@@ -6,26 +6,29 @@ class ImageDisplayDlg : public CDialogEx
 {
 	DECLARE_DYNAMIC(ImageDisplayDlg)
 
-private:
-	CStatic m_image_control;
-	CImage m_img_display;
-	bool m_isInitialized = false;
-
 public:
+#ifdef AFX_DESIGN_TIME
+	enum { IDD = IDD_IMAGEDISPLAY_VIEW };
+#endif
 	ImageDisplayDlg(CWnd* pParent = NULL);   // 표준 생성자입니다.
 	virtual ~ImageDisplayDlg();
 	void UpdateImage(Mat& img);
-	int test;
-// 대화 상자 데이터입니다.
-#ifdef AFX_DESIGN_TIME
-	enum { IDD = IDD_IMAGEDISPLAY_VIEW };
+	virtual BOOL OnInitDialog();
+	afx_msg void OnSize(UINT nType, int cx, int cy);
+	void ResizeControls();
 
-#endif
+	Mat GetImage() { return m_img_org; }
+	void SetImage(Mat& img) { m_img_org = img; }
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 지원입니다.
 	DECLARE_MESSAGE_MAP()
-public:
-	virtual BOOL OnInitDialog();
-	afx_msg void OnSize(UINT nType, int cx, int cy);
+
+private:
+	CStatic m_image_control; // 픽쳐 컨트롤
+	CImage m_img_display;    // 픽쳐 컨트롤에 띄울 이미지
+	Mat m_img_org;				 // 파일 저장을 위해 Mat형도 멤버로 항시 업데이트해줌
+	Mat m_img_resized;
+	bool m_isInitialized = false;
+
 };

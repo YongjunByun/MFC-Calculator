@@ -7,13 +7,19 @@ class ImageDisplayDlg;
 
 class CImageViewerDlg : public CDialogEx
 {
-private:
-	FileIODlg* m_FileIODlg;
-	HistogramDisplayDlg* m_HistogramDisplayDlg;
-	ProcessingDlg* m_ProcessingDlg;
-	ImageDisplayDlg* m_ImageDisplayDlg;
-	bool m_isInitialized = false;
-	void ResizeDlgs();
+public:
+#ifdef AFX_DESIGN_TIME
+	enum { IDD = IDD_IMAGEVIEWER_DIALOG };
+#endif
+	CImageViewerDlg(CWnd* pParent = NULL);	// 표준 생성자입니다.
+	~CImageViewerDlg();
+	
+	afx_msg void OnSize(UINT nType, int cx, int cy);
+
+	ImageDisplayDlg* GetImageDisplayDlg();
+	HistogramDisplayDlg* GetHistogramDisplayDlg();
+	
+	
 
 protected:
 	HICON m_hIcon;
@@ -24,13 +30,14 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 
-public:
-	CImageViewerDlg(CWnd* pParent = NULL);	// 표준 생성자입니다.
+private:
+	FileIODlg* m_FileIODlg;
+	HistogramDisplayDlg* m_HistogramDisplayDlg;
+	ProcessingDlg* m_ProcessingDlg;
+	ImageDisplayDlg* m_ImageDisplayDlg;
+
+	bool m_isInitialized = false;
 	CImage m_image_view;
-	ImageDisplayDlg* GetImageDisplayDlg();
-#ifdef AFX_DESIGN_TIME
-	enum { IDD = IDD_IMAGEVIEWER_DIALOG };
-#endif
-	afx_msg void OnSize(UINT nType, int cx, int cy);
-	
+
+	void ResizeDlgs();
 };

@@ -61,35 +61,41 @@ void FileIODlg::ResizeControls() {
 
 void FileIODlg::OnBnClickedButtonLoad()
 {
-	CFileDialog fileDlg(TRUE, NULL, NULL, OFN_ALLOWMULTISELECT,
-		_T("BMP and RAW Files (*.bmp;*.raw)|*.bmp;*.raw|BMP Files (*.bmp)|*.bmp|RAW Files (*.raw)|*.raw||"),
-		this);
+	try {
+		CFileDialog fileDlg(TRUE, NULL, NULL, OFN_ALLOWMULTISELECT,
+			_T("BMP and RAW Files (*.bmp;*.raw)|*.bmp;*.raw|BMP Files (*.bmp)|*.bmp|RAW Files (*.raw)|*.raw||"),
+			this);
 
-	if (fileDlg.DoModal() == IDOK)
-	{
-		m_List_File.ResetContent();  // 기존 목록 초기화
-		m_file_paths.clear();
-
-		POSITION pos = fileDlg.GetStartPosition();
-		while (pos != NULL)
+		if (fileDlg.DoModal() == IDOK)
 		{
-			CString filePath = fileDlg.GetNextPathName(pos); 
-			m_file_paths.push_back(filePath);
-			// 화면에 보일 경로명은 상대경로로
-			int pos = filePath.ReverseFind(_T('\\')); 
-			if (pos != -1)
+			m_List_File.ResetContent();  // 기존 목록 초기화
+			m_file_paths.clear();
+
+			POSITION pos = fileDlg.GetStartPosition();
+			while (pos != NULL)
 			{
-				filePath = filePath.Mid(pos + 1); 
+				CString filePath = fileDlg.GetNextPathName(pos);
+				m_file_paths.push_back(filePath);
+				// 화면에 보일 경로명은 상대경로로
+				int pos = filePath.ReverseFind(_T('\\'));
+				if (pos != -1)
+				{
+					filePath = filePath.Mid(pos + 1);
+				}
+				m_List_File.AddString(filePath);
+		
 			}
-			m_List_File.AddString(filePath); 
 			Mat mat(m_file_paths[0]);
 			auto* pParentDialog = dynamic_cast<CImageViewerDlg*>(GetParent());
 			auto* displayDlg = pParentDialog->GetImageDisplayDlg();
 			if (displayDlg != nullptr)
 			{
-				displayDlg->UpdateImage(mat); // UpdateImage 함수 호출
+				displayDlg->UpdateImage(mat);
 			}
 		}
+	}
+	catch (std::exception e) {
+		AfxMessageBox(CString(e.what()));
 	}
 
 }
@@ -97,12 +103,29 @@ void FileIODlg::OnBnClickedButtonLoad()
 
 void FileIODlg::OnBnClickedButtonSave()
 {
-	CString path = L"C:\\Users\\user\\Desktop";
 	auto* pParentDialog = dynamic_cast<CImageViewerDlg*>(GetParent());
 	auto* displayDlg = pParentDialog->GetImageDisplayDlg();
-	if (displayDlg != nullptr)
-	{
-		displayDlg->UpdateImage(mat); // UpdateImage 함수 호출
+	if (displayDlg == nullptr)
+		return;
+	
+	Mat src = displayDlg->GetImage();
+	if (src.isEmpty()) {
+		AfxMessageBox(L"이미지를 먼저 불러오세요");
+		return;
+	}
+	CString filter = L"Image Files (*.bmp;*.raw)|*.bmp;*.raw||";
+	CString fileName;
+	fileName.Format(L"ImageSaved_%dx%d.bmp", src.GetWidth(), src.GetHeight());
+	CFileDialog fileDlg(FALSE, NULL, fileName, OFN_OVERWRITEPROMPT, filter, this);
+
+	if (fileDlg.DoModal() == IDOK) {
+		CString path = fileDlg.GetPathName();
+		try {
+			src.ImgSave(path, src); // BMP 저장
+		}
+		catch (std::exception& e) {
+			AfxMessageBox(CString(e.what()));
+		}
 	}
 }
 
@@ -117,20 +140,25 @@ BOOL FileIODlg::OnInitDialog()
 
 void FileIODlg::OnLbnDblclkListFile()
 {
-	CPoint pt;
-	GetCursorPos(&pt);
-	m_List_File.ScreenToClient(&pt);
-	// 마우스 위치에서 아이템 인덱스를 가져온다
-	BOOL bOutside = FALSE;
-	int nIndex = m_List_File.ItemFromPoint(pt, bOutside);
-	if (nIndex != LB_ERR && bOutside == FALSE)
-	{
-		Mat mat(m_file_paths[nIndex]);
-		auto* pParentDialog = dynamic_cast<CImageViewerDlg*>(GetParent());
-		auto* displayDlg = pParentDialog->GetImageDisplayDlg();
-		if (displayDlg != nullptr)
+	try {
+		CPoint pt;
+		GetCursorPos(&pt);
+		m_List_File.ScreenToClient(&pt);
+		// 마우스 위치에서 아이템 인덱스를 가져온다
+		BOOL bOutside = FALSE;
+		int nIndex = m_List_File.ItemFromPoint(pt, bOutside);
+		if (nIndex != LB_ERR && bOutside == FALSE)
 		{
-			displayDlg->UpdateImage(mat); // UpdateImage 함수 호출
+			Mat mat(m_file_paths[nIndex]);
+			auto* pParentDialog = dynamic_cast<CImageViewerDlg*>(GetParent());
+			auto* displayDlg = pParentDialog->GetImageDisplayDlg();
+			if (displayDlg != nullptr)
+			{
+				displayDlg->UpdateImage(mat);
+			}
 		}
+	}
+	catch (std::exception e) {
+		AfxMessageBox(CString(e.what()));
 	}
 }

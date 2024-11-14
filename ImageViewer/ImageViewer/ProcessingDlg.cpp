@@ -5,7 +5,10 @@
 #include "ImageViewer.h"
 #include "ProcessingDlg.h"
 #include "afxdialogex.h"
+#include "ImageViewerDlg.h"
+#include "Mat.h"
 
+#include "ImageDisplayDlg.h"
 
 // ProcessingDlg 대화 상자입니다.
 
@@ -13,7 +16,6 @@ IMPLEMENT_DYNAMIC(ProcessingDlg, CDialogEx)
 
 ProcessingDlg::ProcessingDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_PROCESSING_VIEW, pParent)
-	, m_edit_threshold(0)
 {
 
 }
@@ -25,8 +27,7 @@ ProcessingDlg::~ProcessingDlg()
 void ProcessingDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
-	DDX_Text(pDX, IDC_EDIT1, m_edit_threshold);
-	DDV_MinMaxInt(pDX, m_edit_threshold, 0, 255);
+	DDX_Control(pDX, IDC_EDIT1, m_edit_threshold);
 }
 
 
@@ -46,55 +47,134 @@ END_MESSAGE_MAP()
 
 void ProcessingDlg::OnBnClickedButtonRotate10()
 {
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	auto* pParentDialog = dynamic_cast<CImageViewerDlg*>(GetParent());
+	auto* displayDlg = pParentDialog->GetImageDisplayDlg();
+	Mat src = displayDlg->GetImage();
+	Mat dst;
+	if (!cv.RotateImage(src, dst, 10)) {
+		AfxMessageBox(L"FAIL");
+		return;
+	}
+	displayDlg->UpdateImage(dst);
 }
 
 
 void ProcessingDlg::OnBnClickedButtonNRotate10()
 {
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	auto* pParentDialog = dynamic_cast<CImageViewerDlg*>(GetParent());
+	auto* displayDlg = pParentDialog->GetImageDisplayDlg();
+	Mat src = displayDlg->GetImage();
+	Mat dst;
+	if (!cv.RotateImage(src, dst, -10)) {
+		AfxMessageBox(L"FAIL");
+		return;
+	}
+	displayDlg->UpdateImage(dst);
 }
 
 
 void ProcessingDlg::OnBnClickedButtonVerticalFlip()
 {
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	auto* pParentDialog = dynamic_cast<CImageViewerDlg*>(GetParent());
+	auto* displayDlg = pParentDialog->GetImageDisplayDlg();
+	Mat src = displayDlg->GetImage();
+	Mat dst;
+	if (!cv.FlipImage(src, dst, true)) {
+		AfxMessageBox(L"FAIL");
+		return;
+	}
+	displayDlg->UpdateImage(dst);
 }
 
 
 void ProcessingDlg::OnBnClickedButtonHorizontalFlip()
 {
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	auto* pParentDialog = dynamic_cast<CImageViewerDlg*>(GetParent());
+	auto* displayDlg = pParentDialog->GetImageDisplayDlg();
+	Mat src = displayDlg->GetImage();
+	Mat dst;
+	if (!cv.FlipImage(src, dst, false)) {
+		AfxMessageBox(L"FAIL");
+		return;
+	}
+	displayDlg->UpdateImage(dst);
 }
 
 
 void ProcessingDlg::OnBnClickedButtonScaleMinus()
 {
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	auto* pParentDialog = dynamic_cast<CImageViewerDlg*>(GetParent());
+	auto* displayDlg = pParentDialog->GetImageDisplayDlg();
+	Mat src = displayDlg->GetImage();
+	Mat dst;
+	if (!cv.ResizeImage(src, dst, 0.9)) {
+		AfxMessageBox(L"FAIL");
+		return;
+	}
+	displayDlg->UpdateImage(dst);
 }
 
 
 void ProcessingDlg::OnBnClickedButtonScalePlus()
 {
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	auto* pParentDialog = dynamic_cast<CImageViewerDlg*>(GetParent());
+	auto* displayDlg = pParentDialog->GetImageDisplayDlg();
+	Mat src = displayDlg->GetImage();
+	Mat dst;
+	if (!cv.ResizeImage(src, dst, 1.1)) {
+		AfxMessageBox(L"FAIL");
+		return;
+	}
+	cv.ResizeImage(src, dst, 1.1);
+	displayDlg->UpdateImage(dst);
 }
 
 
 void ProcessingDlg::OnBnClickedButtonGaussian()
 {
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	auto* pParentDialog = dynamic_cast<CImageViewerDlg*>(GetParent());
+	auto* displayDlg = pParentDialog->GetImageDisplayDlg();
+	Mat src = displayDlg->GetImage();
+	Mat dst;
+	if (!cv.GaussianBlur(src, dst)) {
+		AfxMessageBox(L"FAIL");
+		return;
+	}
+	displayDlg->UpdateImage(dst);
 }
 
 
 void ProcessingDlg::OnBnClickedButtonMedian()
 {
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	auto* pParentDialog = dynamic_cast<CImageViewerDlg*>(GetParent());
+	auto* displayDlg = pParentDialog->GetImageDisplayDlg();
+	Mat src = displayDlg->GetImage();
+	Mat dst;
+	if (!cv.MedianBlur(src, dst)){
+		AfxMessageBox(L"FAIL");
+		return;
+	}
+	displayDlg->UpdateImage(dst);
 }
 
 
 void ProcessingDlg::OnBnClickedButtonInspection()
 {
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	CString str;
+	m_edit_threshold.GetWindowText(str);
+	int threshold = _ttoi(str);
+
+	auto* pParentDialog = dynamic_cast<CImageViewerDlg*>(GetParent());
+	auto* displayDlg = pParentDialog->GetImageDisplayDlg();
+	Mat src = displayDlg->GetImage();
+	Mat dst;
+	if (!cv.Binarization(src, dst, threshold)) {
+		AfxMessageBox(L"FAIL\nThreshold 범위를 확인하세요");
+		return;
+	}
+	vector<vector<Point_>> contours;
+	cv.Contours(dst, contours);
+	displayDlg->UpdateImage(dst);
 }
 
 
@@ -102,10 +182,8 @@ BOOL ProcessingDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
 
-	// TODO:  여기에 추가 초기화 작업을 추가합니다.
 	m_isInitialized = true;
-	return TRUE;  // return TRUE unless you set the focus to a control
-				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.
+	return TRUE;
 }
 
 
@@ -151,15 +229,15 @@ void ProcessingDlg::ResizeControls() {
 	{
 		col0_static_text->SetWindowPos(nullptr, margin, margin + 4 * (buttonHeight + margin),
 			buttonWidth,          
-			buttonHeight / 2 - margin / 2, 
+			buttonHeight * 0.65 - margin / 2, 
 			SWP_NOZORDER);
 	}
 	if (col0_edit_text != nullptr)
 	{
 		// 하단에 edit text 배치
-		col0_edit_text->SetWindowPos(nullptr, margin, margin + 4 * (buttonHeight + margin) + (buttonHeight / 2 - margin / 2),
+		col0_edit_text->SetWindowPos(nullptr, margin, margin + 4 * (buttonHeight + margin) + (buttonHeight * 0.65 - margin / 2),
 			buttonWidth,
-			buttonHeight / 2 - margin / 2, 
+			buttonHeight *0.35, 
 			SWP_NOZORDER);
 	}
 	// 두 번째 열의 버튼 위치 설정

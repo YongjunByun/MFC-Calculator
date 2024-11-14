@@ -1,30 +1,17 @@
 #pragma once
-
-
-// ProcessingDlg 대화 상자입니다.
+#include "ImageProcessing.h"
+#include "afxwin.h"
 
 class ProcessingDlg : public CDialogEx
 {
 	DECLARE_DYNAMIC(ProcessingDlg)
 
-private:
-	bool m_isInitialized = false;
-	int m_edit_threshold;
-	void ResizeControls();
 public:
 	ProcessingDlg(CWnd* pParent = NULL);   // 표준 생성자입니다.
 	virtual ~ProcessingDlg();
-
-// 대화 상자 데이터입니다.
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_PROCESSING_VIEW };
 #endif
-
-protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 지원입니다.
-
-	DECLARE_MESSAGE_MAP()
-public:
 	afx_msg void OnBnClickedButtonRotate10();
 	afx_msg void OnBnClickedButtonNRotate10();
 	afx_msg void OnBnClickedButtonVerticalFlip();
@@ -38,4 +25,13 @@ public:
 	virtual BOOL OnInitDialog();
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 
+protected:
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 지원입니다.
+	DECLARE_MESSAGE_MAP()
+
+private:
+	bool m_isInitialized = false;
+	void ResizeControls();
+	ImageProcessing cv;
+	CEdit m_edit_threshold;
 };
