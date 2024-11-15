@@ -187,7 +187,6 @@ bool Mat::ImgSave(CString path, Mat& src)
 		// 픽셀 데이터 쓰기
 		for (int y = height - 1; y >= 0; --y) {  // BMP 파일은 아래에서 위로 저장
 			for (int x = 0; x < width; ++x) {
-				
 				if (src.GetbitDepth() == 8) {
 					uint8_t grayValue = static_cast<uint8_t>(src.m_data[y * width + x]);  // 원본 그레이스케일 값 가져오기
 					uint8_t rgb[3] = { grayValue, grayValue, grayValue };  // RGB 채널에 동일한 값 할당 (24비트)
@@ -197,10 +196,14 @@ bool Mat::ImgSave(CString path, Mat& src)
 					uint16_t grayValue = src.m_data[y * width + x];
 					uint8_t scaled = src.LinearScale_U16toU8(grayValue, src.GetMinValue(), src.GetMaxValue());
 					uint8_t rgb[3] = { scaled, scaled, scaled };
-					outputFile.write(reinterpret_cast<const char*>(rgb), sizeof(rgb)); 
+					outputFile.write(reinterpret_cast<const char*>(rgb), sizeof(rgb));
 				}
-				
 			}
+			// 패딩 계산 및 추가
+			int rowSize = width * 3;  // 한 행의 데이터 크기 (픽셀당 3바이트)
+			int paddingSize = (4 - (rowSize % 4)) % 4;  // 4바이트 배수를 맞추기 위한 패딩 크기
+			uint8_t padding[3] = { 0, 0, 0 };  // 최대 패딩 크기 3바이트 (0으로 채움)
+			outputFile.write(reinterpret_cast<const char*>(padding), paddingSize);  // 패딩 추가
 		}
 		outputFile.close();
 	}
