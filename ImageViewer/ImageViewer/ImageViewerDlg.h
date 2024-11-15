@@ -14,6 +14,7 @@ public:
 	CImageViewerDlg(CWnd* pParent = NULL);	// 표준 생성자입니다.
 	~CImageViewerDlg();
 	afx_msg void OnSize(UINT nType, int cx, int cy);
+	afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
 	ImageDisplayDlg* GetImageDisplayDlg();
 	HistogramDisplayDlg* GetHistogramDisplayDlg();
 	
@@ -35,5 +36,6 @@ private:
 	ImageDisplayDlg* m_ImageDisplayDlg;
 	bool m_isInitialized = false;
 	CImage m_image_view;
+	CRect m_rcMinimumDialog;
 	void ResizeDlgs();
 };

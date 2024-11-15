@@ -67,6 +67,13 @@ void CImageViewerDlg::OnSize(UINT nType, int cx, int cy)
 	ResizeDlgs();
 }
 
+void CImageViewerDlg::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
+{
+	lpMMI->ptMinTrackSize.x = m_rcMinimumDialog.Width();
+	lpMMI->ptMinTrackSize.y = m_rcMinimumDialog.Height();
+	CDialogEx::OnGetMinMaxInfo(lpMMI);
+}
+
 ImageDisplayDlg* CImageViewerDlg::GetImageDisplayDlg()
 {
 	return m_ImageDisplayDlg;
@@ -88,6 +95,7 @@ BEGIN_MESSAGE_MAP(CImageViewerDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_WM_SIZE()
+	ON_WM_GETMINMAXINFO()
 END_MESSAGE_MAP()
 
 BOOL CImageViewerDlg::OnInitDialog()
@@ -117,6 +125,8 @@ BOOL CImageViewerDlg::OnInitDialog()
 	int dialogWidth = 1280;
 	int dialogHeight = 960;
 	SetWindowPos(NULL, 0, 0, dialogWidth, dialogHeight, SWP_NOMOVE | SWP_NOZORDER);
+	GetClientRect(&m_rcMinimumDialog);
+	CalcWindowRect(m_rcMinimumDialog);
 
 	m_FileIODlg->Create(IDD_FILE_IO_VIEW, this);
 	m_HistogramDisplayDlg->Create(IDD_HISTOGRAM_VIEW, this);
@@ -192,3 +202,5 @@ void CImageViewerDlg::ResizeDlgs() {
 	m_ProcessingDlg->ShowWindow(SW_SHOW);
 	m_ImageDisplayDlg->ShowWindow(SW_SHOW);
 }
+
+

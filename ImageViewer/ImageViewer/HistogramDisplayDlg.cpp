@@ -89,7 +89,10 @@ void HistogramDisplayDlg::OnBnClickedButtonApply()
 	ImageProcessing cv;
 	Mat mat, mat2;
 	cv.Threshold(displayDlg->GetImage(), mat, min, max);
-	cv.Normalize(mat, mat2, 0, 255);
+	if(mat.GetbitDepth() == 8)
+		cv.Normalize(mat, mat2, 0, 255);
+	else
+		cv.Normalize(mat, mat2, 0, 65535);
 	displayDlg->UpdateImage(mat2);
 }
 
