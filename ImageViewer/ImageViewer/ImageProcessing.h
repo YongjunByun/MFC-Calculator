@@ -31,5 +31,8 @@ public:
 	bool Threshold(Mat& src, Mat& dst, int min_threshold, int max_threshold);
 	bool Binarization(Mat& src, Mat& dst, int threshold);
 	bool Contours(Mat& binary_img, vector<vector<Point_>>& contours);
+	bool Sobel(Mat& src, Mat& dst); // 컨투어찾을때만 썼어서 바이너리된 이미지만 인풋으로 받아봄.
+	bool DrawContours(Mat& src, Mat& dst, vector<vector<Point_>>& contours);
+	bool ResizeContours(vector<vector<Point_>>& contours, double ratio);
 };
 

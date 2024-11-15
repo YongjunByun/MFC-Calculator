@@ -12,9 +12,10 @@ public:
 #endif
 	ImageDisplayDlg(CWnd* pParent = NULL);   // 표준 생성자입니다.
 	virtual ~ImageDisplayDlg();
-	void UpdateImage(Mat& img);
-	virtual BOOL OnInitDialog();
 	afx_msg void OnSize(UINT nType, int cx, int cy);
+	virtual BOOL OnInitDialog();
+	void UpdateImage(Mat& img);
+	void UpdateImage(Mat & img, std::vector<std::vector<Point_>>& contours);
 	void ResizeControls();
 
 	Mat GetImage() { return m_img_org; }
@@ -30,5 +31,6 @@ private:
 	Mat m_img_org;				 // 파일 저장을 위해 Mat형도 멤버로 항시 업데이트해줌
 	Mat m_img_resized;
 	bool m_isInitialized = false;
+	const double m_Resize_Ratio = 0.65;
 
 };

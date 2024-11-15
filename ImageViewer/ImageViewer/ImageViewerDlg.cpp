@@ -1,7 +1,3 @@
-
-// ImageViewerDlg.cpp : 구현 파일
-//
-
 #include "stdafx.h"
 #include "ImageViewer.h"
 #include "ImageViewerDlg.h"
@@ -14,9 +10,6 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
-
-// 응용 프로그램 정보에 사용되는 CAboutDlg 대화 상자입니다.
 
 class CAboutDlg : public CDialogEx
 {
@@ -47,11 +40,6 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
 END_MESSAGE_MAP()
-
-
-// CImageViewerDlg 대화 상자
-
-
 
 CImageViewerDlg::CImageViewerDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_IMAGEVIEWER_DIALOG, pParent)
@@ -101,9 +89,6 @@ BEGIN_MESSAGE_MAP(CImageViewerDlg, CDialogEx)
 	ON_WM_QUERYDRAGICON()
 	ON_WM_SIZE()
 END_MESSAGE_MAP()
-
-
-// CImageViewerDlg 메시지 처리기
 
 BOOL CImageViewerDlg::OnInitDialog()
 {
@@ -155,10 +140,6 @@ void CImageViewerDlg::OnSysCommand(UINT nID, LPARAM lParam)
 	}
 }
 
-// 대화 상자에 최소화 단추를 추가할 경우 아이콘을 그리려면
-//  아래 코드가 필요합니다.  문서/뷰 모델을 사용하는 MFC 응용 프로그램의 경우에는
-//  프레임워크에서 이 작업을 자동으로 수행합니다.
-
 void CImageViewerDlg::OnPaint()
 {
 	if (IsIconic())
@@ -190,7 +171,6 @@ HCURSOR CImageViewerDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
 }
-
 
 void CImageViewerDlg::ResizeDlgs() {
 	CRect clientRect;

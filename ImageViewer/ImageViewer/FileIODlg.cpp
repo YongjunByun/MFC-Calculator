@@ -45,19 +45,6 @@ void FileIODlg::OnSize(UINT nType, int cx, int cy)
 	ResizeControls();
 	
 }
-void FileIODlg::ResizeControls() {
-	CRect clientRect;
-	GetClientRect(&clientRect);
-	int row1Height = (int)(clientRect.Height() / 10 * 1); // 1青 10%
-	int row2Height = (int)(clientRect.Height() / 10 * 1); // 1青 10%
-	int row3Height = (int)(clientRect.Height() / 10 * 8); // 1青 80%
-	CWnd* pButtonSave = GetDlgItem(IDC_BUTTON_LOAD);
-	CWnd* pButtonLoad = GetDlgItem(IDC_BUTTON_SAVE);
-	CWnd* pListFile = GetDlgItem(IDC_LIST_FILE);
-	pButtonSave->SetWindowPos(nullptr, 30, 0, clientRect.Width() - 60, row1Height, SWP_NOZORDER);
-	pButtonLoad->SetWindowPos(nullptr, 30, row1Height, clientRect.Width() - 60, row2Height, SWP_NOZORDER);
-	pListFile->SetWindowPos(nullptr, 30, row1Height + row2Height, clientRect.Width() - 60, row3Height, SWP_NOZORDER);
-}
 
 void FileIODlg::OnBnClickedButtonLoad()
 {
@@ -65,6 +52,11 @@ void FileIODlg::OnBnClickedButtonLoad()
 		CFileDialog fileDlg(TRUE, NULL, NULL, OFN_ALLOWMULTISELECT,
 			_T("BMP and RAW Files (*.bmp;*.raw)|*.bmp;*.raw|BMP Files (*.bmp)|*.bmp|RAW Files (*.raw)|*.raw||"),
 			this);
+		
+		const DWORD bufferSize = 1024 * 1024; 
+		fileDlg.GetOFN().lpstrFile = new TCHAR[bufferSize];
+		ZeroMemory(fileDlg.GetOFN().lpstrFile, bufferSize);
+		fileDlg.GetOFN().nMaxFile = bufferSize;
 
 		if (fileDlg.DoModal() == IDOK)
 		{
@@ -93,13 +85,13 @@ void FileIODlg::OnBnClickedButtonLoad()
 				displayDlg->UpdateImage(mat);
 			}
 		}
+		delete[] fileDlg.GetOFN().lpstrFile;
 	}
 	catch (std::exception e) {
 		AfxMessageBox(CString(e.what()));
 	}
 
 }
-
 
 void FileIODlg::OnBnClickedButtonSave()
 {
@@ -113,28 +105,34 @@ void FileIODlg::OnBnClickedButtonSave()
 		AfxMessageBox(L"捞固瘤甫 刚历 阂矾坷技夸");
 		return;
 	}
-	CString filter = L"Image Files (*.bmp;*.raw)|*.bmp;*.raw||";
+	CString filter = L"Bitmap Files (*.bmp)|*.bmp|RAW Files (*.raw)|*.raw||";
 	CString fileName;
-	fileName.Format(L"ImageSaved_%dx%d.bmp", src.GetWidth(), src.GetHeight());
+	fileName.Format(L"ImageSaved_%dx%d", src.GetWidth(), src.GetHeight());
 	CFileDialog fileDlg(FALSE, NULL, fileName, OFN_OVERWRITEPROMPT, filter, this);
 
 	if (fileDlg.DoModal() == IDOK) {
 		CString path = fileDlg.GetPathName();
+		CString selectedExt;
+		int fileTypeIndex = fileDlg.GetOFN().nFilterIndex;
+
+		if (fileTypeIndex == 1) {
+			selectedExt = L".bmp";
+		}
+		else if (fileTypeIndex == 2) {
+			selectedExt = L".raw";
+		}
+
+		if (path.Right(selectedExt.GetLength()).CompareNoCase(selectedExt) != 0) {
+			path += selectedExt;
+		}
+
 		try {
-			src.ImgSave(path, src); // BMP 历厘
+			src.ImgSave(path, src);
 		}
 		catch (std::exception& e) {
 			AfxMessageBox(CString(e.what()));
 		}
 	}
-}
-
-
-BOOL FileIODlg::OnInitDialog()
-{
-	CDialogEx::OnInitDialog();
-	m_isInitialized = true;
-	return TRUE; 
 }
 
 
@@ -161,4 +159,25 @@ void FileIODlg::OnLbnDblclkListFile()
 	catch (std::exception e) {
 		AfxMessageBox(CString(e.what()));
 	}
+}
+
+BOOL FileIODlg::OnInitDialog()
+{
+	CDialogEx::OnInitDialog();
+	m_isInitialized = true;
+	return TRUE;
+}
+
+void FileIODlg::ResizeControls() {
+	CRect clientRect;
+	GetClientRect(&clientRect);
+	int row1Height = (int)(clientRect.Height() / 10 * 1); // 1青 10%
+	int row2Height = (int)(clientRect.Height() / 10 * 1); // 1青 10%
+	int row3Height = (int)(clientRect.Height() / 10 * 8); // 1青 80%
+	CWnd* pButtonSave = GetDlgItem(IDC_BUTTON_LOAD);
+	CWnd* pButtonLoad = GetDlgItem(IDC_BUTTON_SAVE);
+	CWnd* pListFile = GetDlgItem(IDC_LIST_FILE);
+	pButtonSave->SetWindowPos(nullptr, 30, 0, clientRect.Width() - 60, row1Height, SWP_NOZORDER);
+	pButtonLoad->SetWindowPos(nullptr, 30, row1Height, clientRect.Width() - 60, row2Height, SWP_NOZORDER);
+	pListFile->SetWindowPos(nullptr, 30, row1Height + row2Height, clientRect.Width() - 60, row3Height, SWP_NOZORDER);
 }

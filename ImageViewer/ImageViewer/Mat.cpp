@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "Mat.h"
-#include <fstream>
 
 Mat::Mat(const CString& filePath)
 {
@@ -46,7 +45,7 @@ bool Mat::loadRaw(const CString & filePath)
 	std::ifstream file(filePath, std::ios::binary);
 
 	file.seekg(0, std::ios::end);
-	int fileSize = file.tellg();
+	int fileSize = static_cast<int>(file.tellg());
 	file.seekg(0, std::ios::beg); // 파일 포인터를 처음으로 이동
 	if (fileSize != m_width * m_height * 2) {
 		//return false;
@@ -81,7 +80,7 @@ bool Mat::loadBitmap(const CString& filePath)
 		file.close();
 		return false;
 	}
-	m_bitDepth = bitDepth;
+	m_bitDepth = 8;
 	int dataOffset = *reinterpret_cast<int*>(&bmpFileHeader[10]);
 
 	file.seekg(dataOffset, std::ios::beg); // 파일 포인터를 처음으로 이동
@@ -115,18 +114,9 @@ bool Mat::loadBitmap(const CString& filePath)
 
 void Mat::Convert_to_CImage(CImage& out)
 {
-	out.Create(m_width, m_height, 8);  // 화면에 표시용으로 8비트로 생성
+	out.Create(m_width, m_height, 24);  // 24비트 컬러 이미지
 
-	RGBQUAD palette[256];
-	for (int i = 0; i < 256; ++i) {
-		palette[i].rgbRed = i;
-		palette[i].rgbGreen = i;
-		palette[i].rgbBlue = i;
-		palette[i].rgbReserved = 0;
-	}
-	out.SetColorTable(0, 256, palette);
-
-	unsigned char* pImageData = reinterpret_cast<unsigned char*>(out.GetBits());// CImage 데이터 포인터 얻기
+	unsigned char* pImageData = reinterpret_cast<unsigned char*>(out.GetBits()); // CImage 데이터 포인터 얻기
 	int imagePitch = out.GetPitch();
 
 	for (int y = 0; y < m_height; ++y) {
@@ -134,13 +124,18 @@ void Mat::Convert_to_CImage(CImage& out)
 		const uint16_t* pSrcRow = m_data.data() + y * m_width;
 
 		for (int x = 0; x < m_width; ++x) {
-			// 8비트 이미지와 16비트 이미지의 경우를 구분하여 처리
 			if (m_bitDepth == 8) {
-				pDstRow[x] = static_cast<unsigned char>(pSrcRow[x]); // 8비트 그대로 사용
+				unsigned char gray = static_cast<unsigned char>(pSrcRow[x]);
+				pDstRow[x * 3 + 0] = gray; // Blue
+				pDstRow[x * 3 + 1] = gray; // Green
+				pDstRow[x * 3 + 2] = gray; // Red
 			}
 			else {
 				uint16_t value = pSrcRow[x];
-				pDstRow[x] = LinearScale_U16toU8(value, m_minvalue, m_maxvalue);
+				unsigned char gray = LinearScale_U16toU8(value, m_minvalue, m_maxvalue);
+				pDstRow[x * 3 + 0] = gray; // Blue
+				pDstRow[x * 3 + 1] = gray; // Green
+				pDstRow[x * 3 + 2] = gray; // Red
 			}
 		}
 	}
@@ -194,7 +189,7 @@ bool Mat::ImgSave(CString path, Mat& src)
 			for (int x = 0; x < width; ++x) {
 				
 				if (src.GetbitDepth() == 8) {
-					uint8_t grayValue = src.m_data[y * width + x];  // 원본 그레이스케일 값 가져오기
+					uint8_t grayValue = static_cast<uint8_t>(src.m_data[y * width + x]);  // 원본 그레이스케일 값 가져오기
 					uint8_t rgb[3] = { grayValue, grayValue, grayValue };  // RGB 채널에 동일한 값 할당 (24비트)
 					outputFile.write(reinterpret_cast<const char*>(rgb), sizeof(rgb));  // RGB 3채널 데이터 쓰기
 				}

@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "ImageProcessing.h"
+
 ImageProcessing::ImageProcessing()
 {
 }
-
 
 ImageProcessing::~ImageProcessing()
 {
@@ -290,32 +290,37 @@ bool ImageProcessing::Binarization(Mat & src, Mat & dst, int threshold)
 	for (int y = 0; y < height; ++y) {
 		for (int x = 0; x < width; ++x) {
 			int index = y * width + x;
-			if(bitDepth == 8) 
-				dstData[index] = (srcData[index] >= threshold) ? 255 : 0;
-			else 
-				dstData[index] = (srcData[index] >= threshold) ? 65535 : 0;
+			//if(bitDepth == 8) 
+				dstData[index] = (srcData[index] >= threshold) ? 255 : 0; // 인풋이 16bit 이미지여도 그냥 0, 255로 이진화한다.
+			//else 
+			//	dstData[index] = (srcData[index] >= threshold) ? 65535 : 0;
 		}
 	}
 	dst.SetMinValue(0);
-	dst.SetMaxValue(maxThreshold);
+	dst.SetMaxValue(255);
 	return true;
 }
 
 bool ImageProcessing::Contours(Mat& binary_img, vector<vector<Point_>>& contours) {
+	if (binary_img.isEmpty())
+		return false;
+
 	int width = binary_img.GetWidth();
 	int height = binary_img.GetHeight();
-	std::vector<std::vector<bool>> visited(height, std::vector<bool>(width, false));
+	vector<vector<bool>> visited(height, vector<bool>(width, false));
 
-	// 방향 벡터 (상, 하, 좌, 우, 대각선 포함)
+	Mat grad;
+	Sobel(binary_img, grad);
+
 	const int dx[8] = { 1, -1, 0, 0, 1, 1, -1, -1 };
 	const int dy[8] = { 0, 0, 1, -1, 1, -1, 1, -1 };
 
 	for (int y = 0; y < height; ++y) {
 		for (int x = 0; x < width; ++x) {
 			// 이진 이미지에서 윤곽선 시작 위치: 픽셀 값이 255(흰색)이고 방문하지 않은 경우
-			if (binary_img.at(x, y) == 255 && !visited[y][x]) {
-				std::vector<Point_> contour;
-				std::queue<Point_> q;
+			if (grad.at(x, y) == 255 && !visited[y][x]) {
+				vector<Point_> contour;
+				queue<Point_> q;
 				q.push(Point_(x, y));
 				visited[y][x] = true;
 
@@ -330,27 +335,100 @@ bool ImageProcessing::Contours(Mat& binary_img, vector<vector<Point_>>& contours
 						int ny = p.y + dy[i];
 
 						// 유효한 위치인지 확인하고, 흰색 픽셀로 둘러싸여 있지 않으면 가장자리로 간주
-						if (!binary_img.isValid(nx, ny) || binary_img.at(nx, ny) == 0) {
+						if (!grad.isValid(nx, ny) || grad.at(nx, ny) == 0) {
 							isEdge = true;
 						}
-						else if (binary_img.at(nx, ny) == 255 && !visited[ny][nx]) {
+						else if (grad.at(nx, ny) == 255 && !visited[ny][nx]) {
 							visited[ny][nx] = true;
 							q.push(Point_(nx, ny));
 						}
 					}
-
-					// 가장자리에 해당하는 픽셀만 contour에 추가
 					if (isEdge) {
 						contour.push_back(p);
 					}
 				}
-
-				// 검출된 윤곽선 추가
-				if (!contour.empty()) {
+				if (contour.size() > 50) {
 					contours.push_back(contour);
 				}
 			}
 		}
 	}
 	return !contours.empty();
+}
+
+bool ImageProcessing::Sobel(Mat& src, Mat& dst) {
+	if (src.isEmpty())
+		return false;
+
+	int width = src.GetWidth();
+	int height = src.GetHeight();
+
+	dst = src.Copy();
+	const auto& srcData = src.getData();
+	auto& dstData = dst.getData();
+
+	vector<vector<double>> x_kernel{ {-1,0,1}, {-2,0,2}, {-1,0,1} };
+	vector<vector<double>> y_kernel{ { -1,-2,-1 },{ 0,0,0 },{ 1,2,1 } };
+
+	int minvalue = SIZE_UINT16;
+	int maxvalue = 0;
+	for (int y = 0; y < height; ++y) {
+		for (int x = 0; x < width; ++x) {
+			int sumX = 0;
+			int sumY = 0;
+
+			for (int ky = -1; ky <= 1; ++ky) {
+				for (int kx = -1; kx <= 1; ++kx) {
+					int nx = min(max(x + kx, 0), width - 1);
+					int ny = min(max(y + ky, 0), height - 1);
+					int pixel = src.at(nx, ny); 
+					sumX += static_cast<int>(pixel * x_kernel[ky + 1][kx + 1]);
+					sumY += static_cast<int>(pixel * y_kernel[ky + 1][kx + 1]);
+				}
+			}
+			// 그레디언트의 크기 계산
+			int magnitude = static_cast<int>(sqrt(sumX * sumX + sumY * sumY));
+			magnitude = magnitude > 255 ? 255 : magnitude; // 0-255로 클램핑
+			dstData[y * width + x] = magnitude; 
+
+			minvalue = min(minvalue, dstData[y * width + x]);
+			maxvalue = max(maxvalue, dstData[y * width + x]);
+		}
+	}
+	dst.SetMinValue(minvalue);
+	dst.SetMaxValue(maxvalue);
+	return true;
+}
+
+bool ImageProcessing::DrawContours(Mat& src, Mat& dst, vector<vector<Point_>>& contours)
+{
+	if (src.isEmpty())
+		return false;
+
+	int width = src.GetWidth();
+	dst = src.Copy();
+	auto& dstData = dst.getData();
+
+	for (const auto& contour : contours) {
+		for (const auto& point : contour) {
+			int x = point.x;
+			int y = point.y;
+			dstData[y * width + x] = 128;  // 8bit에서 컨투어를 표현하기 위한 숫자
+		}
+	}
+	return true;
+}
+
+bool ImageProcessing::ResizeContours(vector<vector<Point_>>& contours, double ratio)
+{
+	if (ratio <= 0)
+		return false;
+
+	for (auto& contour : contours) {
+		for (auto& point : contour) {
+			point.x = static_cast<int>(point.x * ratio);
+			point.y = static_cast<int>(point.y * ratio);
+		}
+	}
+	return true;
 }

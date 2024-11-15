@@ -1,13 +1,8 @@
-// ProcessingDlg.cpp : 구현 파일입니다.
-//
-
 #include "stdafx.h"
 #include "ImageViewer.h"
 #include "ProcessingDlg.h"
 #include "afxdialogex.h"
 #include "ImageViewerDlg.h"
-#include "Mat.h"
-
 #include "ImageDisplayDlg.h"
 
 // ProcessingDlg 대화 상자입니다.
@@ -30,7 +25,6 @@ void ProcessingDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT1, m_edit_threshold);
 }
 
-
 BEGIN_MESSAGE_MAP(ProcessingDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_ROTATE10, &ProcessingDlg::OnBnClickedButtonRotate10)
 	ON_BN_CLICKED(IDC_BUTTON_N_ROTATE10, &ProcessingDlg::OnBnClickedButtonNRotate10)
@@ -43,7 +37,6 @@ BEGIN_MESSAGE_MAP(ProcessingDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_INSPECTION, &ProcessingDlg::OnBnClickedButtonInspection)
 	ON_WM_SIZE()
 END_MESSAGE_MAP()
-
 
 void ProcessingDlg::OnBnClickedButtonRotate10()
 {
@@ -58,7 +51,6 @@ void ProcessingDlg::OnBnClickedButtonRotate10()
 	displayDlg->UpdateImage(dst);
 }
 
-
 void ProcessingDlg::OnBnClickedButtonNRotate10()
 {
 	auto* pParentDialog = dynamic_cast<CImageViewerDlg*>(GetParent());
@@ -71,7 +63,6 @@ void ProcessingDlg::OnBnClickedButtonNRotate10()
 	}
 	displayDlg->UpdateImage(dst);
 }
-
 
 void ProcessingDlg::OnBnClickedButtonVerticalFlip()
 {
@@ -86,7 +77,6 @@ void ProcessingDlg::OnBnClickedButtonVerticalFlip()
 	displayDlg->UpdateImage(dst);
 }
 
-
 void ProcessingDlg::OnBnClickedButtonHorizontalFlip()
 {
 	auto* pParentDialog = dynamic_cast<CImageViewerDlg*>(GetParent());
@@ -100,7 +90,6 @@ void ProcessingDlg::OnBnClickedButtonHorizontalFlip()
 	displayDlg->UpdateImage(dst);
 }
 
-
 void ProcessingDlg::OnBnClickedButtonScaleMinus()
 {
 	auto* pParentDialog = dynamic_cast<CImageViewerDlg*>(GetParent());
@@ -113,7 +102,6 @@ void ProcessingDlg::OnBnClickedButtonScaleMinus()
 	}
 	displayDlg->UpdateImage(dst);
 }
-
 
 void ProcessingDlg::OnBnClickedButtonScalePlus()
 {
@@ -129,7 +117,6 @@ void ProcessingDlg::OnBnClickedButtonScalePlus()
 	displayDlg->UpdateImage(dst);
 }
 
-
 void ProcessingDlg::OnBnClickedButtonGaussian()
 {
 	auto* pParentDialog = dynamic_cast<CImageViewerDlg*>(GetParent());
@@ -143,7 +130,6 @@ void ProcessingDlg::OnBnClickedButtonGaussian()
 	displayDlg->UpdateImage(dst);
 }
 
-
 void ProcessingDlg::OnBnClickedButtonMedian()
 {
 	auto* pParentDialog = dynamic_cast<CImageViewerDlg*>(GetParent());
@@ -156,7 +142,6 @@ void ProcessingDlg::OnBnClickedButtonMedian()
 	}
 	displayDlg->UpdateImage(dst);
 }
-
 
 void ProcessingDlg::OnBnClickedButtonInspection()
 {
@@ -174,9 +159,9 @@ void ProcessingDlg::OnBnClickedButtonInspection()
 	}
 	vector<vector<Point_>> contours;
 	cv.Contours(dst, contours);
-	displayDlg->UpdateImage(dst);
+	//cv.DrawContours(dst, dst, contours);
+	displayDlg->UpdateImage(dst, contours);
 }
-
 
 BOOL ProcessingDlg::OnInitDialog()
 {
@@ -186,7 +171,6 @@ BOOL ProcessingDlg::OnInitDialog()
 	return TRUE;
 }
 
-
 void ProcessingDlg::OnSize(UINT nType, int cx, int cy)
 {
 	CDialogEx::OnSize(nType, cx, cy);
@@ -194,6 +178,7 @@ void ProcessingDlg::OnSize(UINT nType, int cx, int cy)
 		return;
 	ResizeControls();
 }
+
 void ProcessingDlg::ResizeControls() {
 	CRect clientRect;
 	GetClientRect(&clientRect);
@@ -229,15 +214,15 @@ void ProcessingDlg::ResizeControls() {
 	{
 		col0_static_text->SetWindowPos(nullptr, margin, margin + 4 * (buttonHeight + margin),
 			buttonWidth,          
-			buttonHeight * 0.65 - margin / 2, 
+			static_cast<int>(buttonHeight * 0.65 - margin / 2),
 			SWP_NOZORDER);
 	}
 	if (col0_edit_text != nullptr)
 	{
 		// 하단에 edit text 배치
-		col0_edit_text->SetWindowPos(nullptr, margin, margin + 4 * (buttonHeight + margin) + (buttonHeight * 0.65 - margin / 2),
+		col0_edit_text->SetWindowPos(nullptr, margin, margin + 4 * (buttonHeight + margin) + static_cast<int>(buttonHeight * 0.65 - margin / 2),
 			buttonWidth,
-			buttonHeight *0.35, 
+			static_cast<int>(buttonHeight * 0.35), 
 			SWP_NOZORDER);
 	}
 	// 두 번째 열의 버튼 위치 설정

@@ -1,6 +1,7 @@
 #pragma once
 #include "ImageProcessing.h"
 #include "afxwin.h"
+#include "Mat.h"
 
 class ProcessingDlg : public CDialogEx
 {
@@ -30,8 +31,9 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 private:
-	bool m_isInitialized = false;
 	void ResizeControls();
+
+	bool m_isInitialized = false;
 	ImageProcessing cv;
 	CEdit m_edit_threshold;
 };

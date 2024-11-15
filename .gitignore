@@ -4,6 +4,12 @@ bin/
 x64/
 obj/
 Debug/
+Release/
 ipch/
 *.obj
 *.db
+*.bmp
+*.raw
+*.png
+*.opendb
+*.aps

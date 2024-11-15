@@ -1,6 +1,3 @@
-// HistogramDisplayDlg.cpp : 구현 파일입니다.
-//
-
 #include "stdafx.h"
 #include "ImageViewer.h"
 #include "HistogramDisplayDlg.h"
@@ -9,13 +6,11 @@
 #include "ImageProcessing.h"
 #include "ImageDisplayDlg.h"
 
-
 IMPLEMENT_DYNAMIC(HistogramDisplayDlg, CDialogEx)
 
 HistogramDisplayDlg::HistogramDisplayDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_HISTOGRAM_VIEW, pParent)
 {
-
 }
 
 HistogramDisplayDlg::~HistogramDisplayDlg()
@@ -41,16 +36,6 @@ void HistogramDisplayDlg::OnSize(UINT nType, int cx, int cy)
 	if (m_isInitialized == false)
 		return;
 	ResizeControls();
-}
-
-BOOL HistogramDisplayDlg::OnInitDialog()
-{
-	CDialogEx::OnInitDialog();
-
-	// TODO:  여기에 추가 초기화 작업을 추가합니다.
-	m_isInitialized = true;
-	return TRUE;  // return TRUE unless you set the focus to a control
-				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.
 }
 
 void HistogramDisplayDlg::ResizeControls() {
@@ -90,7 +75,6 @@ void HistogramDisplayDlg::ResizeControls() {
 
 void HistogramDisplayDlg::OnBnClickedButtonApply()
 {
-	
 	int min = 0;
 	int max = 255;
 	CString str_min, str_max;
@@ -145,6 +129,15 @@ void HistogramDisplayDlg::OnBnClickedButtonStretch()
 	pDC->FillSolidRect(&barRectmax, RGB(255, 0, 0));
 }
 
+BOOL HistogramDisplayDlg::OnInitDialog()
+{
+	CDialogEx::OnInitDialog();
+
+	// TODO:  여기에 추가 초기화 작업을 추가합니다.
+	m_isInitialized = true;
+	return TRUE;
+}
+
 void HistogramDisplayDlg::DrawHistogram(Mat& in_img) {
 	std::vector<uint16_t>& histogramData = in_img.getData();
 	CStatic* pStatic = (CStatic*)GetDlgItem(IDC_STATIC_HISTOGRAM);
@@ -193,13 +186,10 @@ void HistogramDisplayDlg::DrawHistogram(Mat& in_img) {
 	int third_maxVal = sortedHistogram[sortedHistogram.size() - 3];
 	if (third_maxVal == 0) third_maxVal = 1;
 	int ratio = maxVal / third_maxVal;
-	if (ratio > 2) {
+	if (ratio < 50 && ratio > 2) {
 		maxVal = maxVal / ratio;
 	}
 
-
-	//int maxVal = *std::max_element(histogram.begin(), histogram.end());
-	//maxVal -= 1000;
 	int barWidth = 1;
 	int x_offset = rect.Width() / 2 - 128;// 히스토그램을 컨트롤 중앙에 표시하기 위한 옵셋
 	for (int i = 0; i < 256; ++i) {
@@ -210,8 +200,6 @@ void HistogramDisplayDlg::DrawHistogram(Mat& in_img) {
 	}
 	pStatic->ReleaseDC(pDC);
 }
-
-
 
 bool HistogramDisplayDlg::CheckEditRange(int mininput, int maxinput, bool is16bit) {
 	if (!is16bit) {
