@@ -43,7 +43,7 @@ void FileIODlg::OnSize(UINT nType, int cx, int cy)
 	if (m_isInitialized == false)
 		return;
 	ResizeControls();
-	
+	GetDlgItem(IDC_LIST_FILE)->Invalidate(FALSE); 
 }
 
 void FileIODlg::OnBnClickedButtonLoad()
@@ -164,6 +164,7 @@ void FileIODlg::OnLbnDblclkListFile()
 BOOL FileIODlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
+	ModifyStyle(0, WS_CLIPCHILDREN);
 	m_isInitialized = true;
 	return TRUE;
 }
@@ -180,4 +181,10 @@ void FileIODlg::ResizeControls() {
 	pButtonSave->SetWindowPos(nullptr, 30, 0, clientRect.Width() - 60, row1Height, SWP_NOZORDER);
 	pButtonLoad->SetWindowPos(nullptr, 30, row1Height, clientRect.Width() - 60, row2Height, SWP_NOZORDER);
 	pListFile->SetWindowPos(nullptr, 30, row1Height + row2Height, clientRect.Width() - 60, row3Height, SWP_NOZORDER);
+
+	/*HDWP hdwp = ::BeginDeferWindowPos(3);
+	::DeferWindowPos(hdwp, pButtonSave->GetSafeHwnd(), HWND_TOP, 30, 0, clientRect.Width() - 60, row1Height, SWP_NOZORDER);
+	::DeferWindowPos(hdwp, pButtonLoad->GetSafeHwnd(), HWND_TOP, 30, row1Height, clientRect.Width() - 60, row2Height, SWP_NOZORDER);
+	::DeferWindowPos(hdwp, pListFile->GetSafeHwnd(), HWND_TOP, 30, row1Height + row2Height, clientRect.Width() - 60, row3Height, SWP_NOZORDER);
+	::EndDeferWindowPos(hdwp);*/
 }

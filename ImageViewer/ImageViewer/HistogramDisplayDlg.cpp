@@ -36,6 +36,13 @@ void HistogramDisplayDlg::OnSize(UINT nType, int cx, int cy)
 	if (m_isInitialized == false)
 		return;
 	ResizeControls();
+	//GetDlgItem(IDC_STATIC_HISTOGRAM)->Invalidate(FALSE);
+	GetDlgItem(IDC_STATIC_MIN_HIST)->Invalidate(FALSE);
+	GetDlgItem(IDC_STATIC_MAX_HIST)->Invalidate(FALSE);
+	GetDlgItem(IDC_STATIC_MIN)->Invalidate(FALSE);
+	GetDlgItem(IDC_STATIC_MAX)->Invalidate(FALSE);
+	GetDlgItem(IDC_EDIT_MIN)->Invalidate(FALSE);
+	GetDlgItem(IDC_EDIT_MAX)->Invalidate(FALSE);
 }
 
 void HistogramDisplayDlg::ResizeControls() {
@@ -89,11 +96,46 @@ void HistogramDisplayDlg::OnBnClickedButtonApply()
 	ImageProcessing cv;
 	Mat mat, mat2;
 	cv.Threshold(displayDlg->GetImage(), mat, min, max);
-	if(mat.GetbitDepth() == 8)
-		cv.Normalize(mat, mat2, 0, 255);
-	else
-		cv.Normalize(mat, mat2, 0, 65535);
-	displayDlg->UpdateImage(mat2);
+
+	displayDlg->Update_onlyCImage(mat);
+	DrawHistogram(displayDlg->GetImage());
+	CRect rect;
+	CStatic* pStatic = (CStatic*)GetDlgItem(IDC_STATIC_HISTOGRAM);
+	CDC* pDC = pStatic->GetDC();
+	if (!pDC) {
+		return;
+	}
+	pStatic->GetClientRect(&rect);
+	int barHeight = rect.Height();
+	int barWidth = 1;
+	int x_offset = rect.Width() / 2 - 128;// 히스토그램을 컨트롤 중앙에 표시하기 위한 옵셋
+
+	int scaled_min, scaled_max;
+	if (mat.GetbitDepth() != 8) {
+		scaled_min = mat.LinearScale_U16toU8(min, displayDlg->GetImage().GetMinValue(), displayDlg->GetImage().GetMaxValue());
+		scaled_max = mat.LinearScale_U16toU8(max, displayDlg->GetImage().GetMinValue(), displayDlg->GetImage().GetMaxValue());
+		min = scaled_min;
+		max = scaled_max;
+	}
+
+	CRect barRectmin(min * barWidth + x_offset, rect.Height() - barHeight, (min + 1) * barWidth + x_offset, rect.Height());
+	CRect barRectmax(max * barWidth + x_offset, rect.Height() - barHeight, (max + 1) * barWidth + x_offset, rect.Height());
+	pDC->FillSolidRect(&barRectmin, RGB(255, 0, 0));
+	pDC->FillSolidRect(&barRectmax, RGB(255, 0, 0));
+
+	CWnd* static_min_histogram = GetDlgItem(IDC_STATIC_MIN_HIST);
+	CWnd* static_max_histogram = GetDlgItem(IDC_STATIC_MAX_HIST);
+	CString minText, maxText;
+	if (mat.GetbitDepth() != 8) {
+		minText.Format(L"%d", mat.GetMinValue());
+		maxText.Format(L"%d", mat.GetMaxValue());
+	}
+	else {
+		minText.Format(L"%d", min);
+		maxText.Format(L"%d", max);
+	}
+	static_min_histogram->SetWindowTextW(minText);
+	static_max_histogram->SetWindowTextW(maxText);
 }
 
 void HistogramDisplayDlg::OnBnClickedButtonStretch()

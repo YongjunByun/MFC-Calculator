@@ -16,6 +16,7 @@ public:
 	virtual BOOL OnInitDialog();
 	void UpdateImage(Mat& img);
 	void UpdateImage(Mat & img, std::vector<std::vector<Point_>>& contours);
+	void Update_onlyCImage(Mat & img);
 	void ResizeControls();
 
 	Mat GetImage() { return m_img_org; }

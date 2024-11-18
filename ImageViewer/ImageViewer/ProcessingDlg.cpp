@@ -177,6 +177,8 @@ void ProcessingDlg::OnSize(UINT nType, int cx, int cy)
 	if (m_isInitialized == false)
 		return;
 	ResizeControls();
+	GetDlgItem(IDC_EDIT1)->Invalidate(FALSE);
+	GetDlgItem(IDC_STATIC)->Invalidate(FALSE);
 }
 
 void ProcessingDlg::ResizeControls() {

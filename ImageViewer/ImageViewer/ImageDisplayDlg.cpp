@@ -23,6 +23,7 @@ void ImageDisplayDlg::OnSize(UINT nType, int cx, int cy)
 	if (m_isInitialized == false)
 		return;
 	ResizeControls();
+	GetDlgItem(IDC_IMAGE)->Invalidate(FALSE);
 }
 
 BOOL ImageDisplayDlg::OnInitDialog()
@@ -109,6 +110,45 @@ void ImageDisplayDlg::UpdateImage(Mat& img, std::vector<std::vector<Point_>>& co
 			}
 		}
 	}
+	int imageWidth = m_img_display.GetWidth();
+	int imageHeight = m_img_display.GetHeight();
+
+	int xPos = static_cast<int>((dialogRect.Width() / 2) - (imageWidth / 2));
+	int yPos = static_cast<int>((dialogRect.Height() / 2) - (imageHeight / 2));
+	m_image_control.SetWindowPos(
+		nullptr,
+		xPos, yPos,
+		imageWidth,
+		imageHeight,
+		SWP_NOZORDER | SWP_SHOWWINDOW
+	);
+	CWnd* pic_control = GetDlgItem(IDC_IMAGE);
+	m_img_display.StretchBlt(dc->m_hDC, 0, 0, imageWidth, imageHeight, SRCCOPY);
+
+	ReleaseDC(dc);//DC 해제
+}
+
+void ImageDisplayDlg::Update_onlyCImage(Mat& img)
+{
+	if (img.isEmpty()) {
+		AfxMessageBox(L"이미지가 없습니다");
+		return;
+	}
+	if (!m_img_display.IsNull())
+		m_img_display.Destroy(); // 디스플레이되고 있는 CImage 초기화
+
+	CRect picRect, dialogRect;
+	m_image_control.GetWindowRect(picRect); // 픽쳐 컨트롤의 크기
+	CDC* dc = m_image_control.GetDC(); //픽쳐 컨트롤의 DC를 얻는다
+	GetClientRect(&dialogRect); // 다이얼로그의 크기
+
+	auto* pParentDialog = dynamic_cast<CImageViewerDlg*>(GetParent());
+	auto* histogramDlg = pParentDialog->GetHistogramDisplayDlg();
+
+	ImageProcessing cv;
+	cv.ResizeImage(img, m_img_resized, m_Resize_Ratio);
+	m_img_resized.Convert_to_CImage(m_img_display);
+
 	int imageWidth = m_img_display.GetWidth();
 	int imageHeight = m_img_display.GetHeight();
 

@@ -25,6 +25,7 @@ public:
 	bool FlipImage(Mat& src, Mat& dst, bool vertical);
 	bool ResizeImage(Mat& src, Mat& dst, double ratio); // 양선형 보간법
 	bool GaussianBlur(Mat& src, Mat& dst, int ksize = 5, int sigma = 1);
+	bool SeparableGaussianBlur(Mat & src, Mat & dst, int ksize, int sigma);
 	bool MedianBlur(Mat& src, Mat& dst, int ksize = 3);
 	bool MulThread_MedianBlur(Mat& src, Mat & dst, int ksize = 3) ;
 	bool Normalize(Mat& src, Mat& dst, int minHist, int maxHist); // 히스토그램 정규화
