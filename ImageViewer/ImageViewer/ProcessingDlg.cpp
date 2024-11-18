@@ -36,6 +36,8 @@ BEGIN_MESSAGE_MAP(ProcessingDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_MEDIAN, &ProcessingDlg::OnBnClickedButtonMedian)
 	ON_BN_CLICKED(IDC_BUTTON_INSPECTION, &ProcessingDlg::OnBnClickedButtonInspection)
 	ON_WM_SIZE()
+	ON_BN_CLICKED(IDC_BUTTON_OTSU, &ProcessingDlg::OnBnClickedButtonOtsu)
+	ON_BN_CLICKED(IDC_BUTTON_BILATERAL, &ProcessingDlg::OnBnClickedButtonBilateral)
 END_MESSAGE_MAP()
 
 void ProcessingDlg::OnBnClickedButtonRotate10()
@@ -123,7 +125,7 @@ void ProcessingDlg::OnBnClickedButtonGaussian()
 	auto* displayDlg = pParentDialog->GetImageDisplayDlg();
 	Mat src = displayDlg->GetImage();
 	Mat dst;
-	if (!cv.GaussianBlur(src, dst)) {
+	if (!cv.SeparableGaussianBlur(src, dst)) {
 		AfxMessageBox(L"FAIL");
 		return;
 	}
@@ -163,6 +165,33 @@ void ProcessingDlg::OnBnClickedButtonInspection()
 	displayDlg->UpdateImage(dst, contours);
 }
 
+void ProcessingDlg::OnBnClickedButtonOtsu()
+{
+	auto* pParentDialog = dynamic_cast<CImageViewerDlg*>(GetParent());
+	auto* displayDlg = pParentDialog->GetImageDisplayDlg();
+	Mat src = displayDlg->GetImage();
+	Mat dst;
+	if (!cv.Otsu(src, dst)) {
+		AfxMessageBox(L"FAIL");
+		return;
+	}
+	displayDlg->UpdateImage(dst);
+}
+
+
+void ProcessingDlg::OnBnClickedButtonBilateral()
+{
+	auto* pParentDialog = dynamic_cast<CImageViewerDlg*>(GetParent());
+	auto* displayDlg = pParentDialog->GetImageDisplayDlg();
+	Mat src = displayDlg->GetImage();
+	Mat dst;
+	if (!cv.BilateralBlur(src, dst, -1, 0.25, 2)) {
+		AfxMessageBox(L"FAIL");
+		return;
+	}
+	displayDlg->UpdateImage(dst);
+}
+
 BOOL ProcessingDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
@@ -184,24 +213,27 @@ void ProcessingDlg::OnSize(UINT nType, int cx, int cy)
 void ProcessingDlg::ResizeControls() {
 	CRect clientRect;
 	GetClientRect(&clientRect);
-	int buttonHeight = (int)(clientRect.Height() / 5) - 10; // 5행
+	int buttonHeight = (int)(clientRect.Height() / 6) - 10; // 5행
 	int buttonWidth = (int)(clientRect.Width() / 2) - 10; // 2열
 	int margin = 10; // 버튼 간 마진
 	CWnd* col0_Button[] = { GetDlgItem(IDC_BUTTON_ROTATE10),
 		GetDlgItem(IDC_BUTTON_VERTICAL_FLIP),
 		GetDlgItem(IDC_BUTTON_SCALE_MINUS),
-		GetDlgItem(IDC_BUTTON_GAUSSIAN),};
+		GetDlgItem(IDC_BUTTON_GAUSSIAN),
+		GetDlgItem(IDC_BUTTON_OTSU)
+	};
 	CWnd* col1_Button[] = { GetDlgItem(IDC_BUTTON_N_ROTATE10),
 		GetDlgItem(IDC_BUTTON_HORIZONTAL_FLIP),
 		GetDlgItem(IDC_BUTTON_SCALE_PLUS),
 		GetDlgItem(IDC_BUTTON_MEDIAN),
+		GetDlgItem(IDC_BUTTON_BILATERAL),
 		GetDlgItem(IDC_BUTTON_INSPECTION)
 	};
 	CWnd* col0_static_text = GetDlgItem(IDC_STATIC);
 	CWnd* col0_edit_text = GetDlgItem(IDC_EDIT1);
 
 	// 첫 번째 열의 버튼 위치 설정
-	for (int i = 0; i < 4; ++i) // 맨 아래 버튼 제외
+	for (int i = 0; i < 5; ++i) // 맨 아래 버튼 제외
 	{
 		if (col0_Button[i] != nullptr)
 		{
@@ -214,21 +246,21 @@ void ProcessingDlg::ResizeControls() {
 	}
 	if (col0_static_text != nullptr)
 	{
-		col0_static_text->SetWindowPos(nullptr, margin, margin + 4 * (buttonHeight + margin),
+		col0_static_text->SetWindowPos(nullptr, margin, 5 * (buttonHeight + margin),
 			buttonWidth,          
-			static_cast<int>(buttonHeight * 0.65 - margin / 2),
+			static_cast<int>(buttonHeight * 0.7),
 			SWP_NOZORDER);
 	}
 	if (col0_edit_text != nullptr)
 	{
 		// 하단에 edit text 배치
-		col0_edit_text->SetWindowPos(nullptr, margin, margin + 4 * (buttonHeight + margin) + static_cast<int>(buttonHeight * 0.65 - margin / 2),
+		col0_edit_text->SetWindowPos(nullptr, margin, 5 * (buttonHeight + margin) + static_cast<int>(buttonHeight * 0.7),
 			buttonWidth,
-			static_cast<int>(buttonHeight * 0.35), 
+			static_cast<int>(buttonHeight * 0.3), 
 			SWP_NOZORDER);
 	}
 	// 두 번째 열의 버튼 위치 설정
-	for (int i = 0; i < 5; ++i)
+	for (int i = 0; i < 6; ++i)
 	{
 		if (col1_Button[i] != nullptr)
 		{
@@ -240,3 +272,4 @@ void ProcessingDlg::ResizeControls() {
 	}
 
 }
+

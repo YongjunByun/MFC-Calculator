@@ -179,6 +179,114 @@ bool ImageProcessing::GaussianBlur(Mat& src, Mat& dst, int ksize, int sigma)
 	return true;
 }
 
+bool ImageProcessing::SeparableGaussianBlur(Mat& src, Mat& dst, int ksize, int sigma)
+{
+	if (ksize <= 1 || ksize % 2 == 0)
+		return false; // 커널 사이즈 예외처리
+	if (sigma <= 0)
+		return false;
+	if (src.isEmpty())
+		return false;
+
+	int width = src.GetWidth();
+	int height = src.GetHeight();
+	dst = src.Copy();
+
+	const auto& srcData = src.getData();
+	auto& dstData = dst.getData();
+
+	vector<double> kernel(ksize, 0);
+	int halfK = ksize / 2;
+	double sum = 0.0;
+
+	for (int i = 0; i < ksize; ++i) { // 가우시안 필터 특성상 Gx만 구해서 계산해도 될듯
+		double x = i - halfK;
+		kernel[i] = exp(-(x * x) / (2.0 * sigma * sigma));
+		sum += kernel[i];
+	}
+
+	for (int i = 0; i < ksize; ++i) {
+		kernel[i] /= sum;
+	}
+
+
+	for (int y = 0; y < height; ++y) {
+		for (int x = 0; x < width; ++x) {
+			double pixelSum = 0.0;
+			for (int i = -halfK; i <= halfK; ++i) {
+				int nx = min(max(x + i, 0), width - 1);
+				pixelSum += srcData[y * width + nx] * kernel[i + halfK];
+			}
+			dstData[y * width + x] = static_cast<uint16_t>(pixelSum);
+		}
+	}
+
+	for (int y = 0; y < height; ++y) {
+		for (int x = 0; x < width; ++x) {
+			double pixelSum = 0.0;
+			for (int i = -halfK; i <= halfK; ++i) {
+				int ny = min(max(y + i, 0), height - 1);
+				pixelSum += dstData[ny * width + x] * kernel[i + halfK];
+			}
+			dstData[y * width + x] = static_cast<uint16_t>(pixelSum);
+		}
+	}
+	return true;
+}
+
+bool ImageProcessing::BilateralBlur(Mat& src, Mat& dst, int d, double sigmaColor, double sigmaSpace) {
+	if (src.isEmpty())
+		return false;
+
+	dst = src.Copy();
+	int width = src.GetWidth();
+	int height = src.GetHeight();
+	int kernelSize = d;
+	if(d == -1)
+		kernelSize = 2 * ceil(3 * sigmaSpace) + 1; // 필터 크기, 3*sigmaSpace 범위 사용
+	int halfKernel = kernelSize / 2;
+
+	// 가우시안 공간 필터 계산
+	vector<vector<double>> spatialKernel(kernelSize, vector<double>(kernelSize));
+	for (int i = -halfKernel; i <= halfKernel; ++i) {
+		for (int j = -halfKernel; j <= halfKernel; ++j) {
+			spatialKernel[i + halfKernel][j + halfKernel] =
+				exp(-(i * i + j * j) / (2 * sigmaSpace * sigmaSpace));
+		}
+	}
+	auto& dstData = dst.getData();
+	// 필터링 작업
+	for (int y = 0; y < height; ++y) {
+		for (int x = 0; x < width; ++x) {
+			double wp = 0.0;        // 정규화 상수
+			double pixelSum = 0.0; // 결과 픽셀 값
+
+			for (int i = -halfKernel; i <= halfKernel; ++i) {
+				for (int j = -halfKernel; j <= halfKernel; ++j) {
+					int ny = min(max(y + i, 0), height - 1);
+					int nx = min(max(x + j, 0), width - 1);
+
+					// 색상 가우시안 필터
+					double colorDiff = src.at(x, y) - src.at(nx, ny);
+					double rangeWeight = exp(-(colorDiff * colorDiff) / (2 * sigmaColor * sigmaColor));
+
+					// 최종 가중치
+					double weight = spatialKernel[i + halfKernel][j + halfKernel] * rangeWeight;
+
+					// 누적 합
+					wp += weight;
+					pixelSum += weight * src.at(nx, ny);
+				}
+			}
+
+			// 필터링 결과 저장
+			dstData[y * width + x] = static_cast<uint16_t>(pixelSum / wp);
+		}
+	}
+
+	return true;
+}
+
 bool ImageProcessing::MedianBlur(Mat& src, Mat& dst, int ksize)
 {
 	if (ksize <= 1 || ksize % 2 == 0) 
@@ -267,6 +375,69 @@ bool ImageProcessing::Threshold(Mat& src, Mat& dst, int min_threshold, int max_t
 	}
 	dst.SetMinValue(min_threshold);
 	dst.SetMaxValue(max_threshold);
+	return true;
+}
+
+bool ImageProcessing::Otsu(Mat& src, Mat& dst) {
+	if (src.isEmpty())
+		return false;
+
+	int width = src.GetWidth();
+	int height = src.GetHeight();
+	int bitDepth = src.GetbitDepth();
+	if (bitDepth != 8)
+		Normalize(src, src, 0, 255); // 16비트 이미지면 정규화시키고 계산
+	dst = src.Copy();
+
+	vector<int> hist(256, 0);
+
+	for (int y = 0; y < height; ++y) {
+		for (int x = 0; x < width; ++x) {
+			hist[src.at(x, y)]++;
+		}
+	}
+	
+	int totalPixels = width * height;
+
+	vector<double> probability(256, 0.0);
+	vector<double> cumulativeSum(256, 0.0);
+	vector<double> cumulativeMean(256, 0.0);
+
+	// 히스토그램 확률 계산
+	for (int i = 0; i < 256; ++i) {
+		probability[i] = static_cast<double>(hist[i]) / totalPixels;
+	}
+
+	// 누적합과 누적 평균
+	for (int i = 0; i < 256; ++i) {
+		cumulativeSum[i] = (i == 0) ? probability[i] : cumulativeSum[i - 1] + probability[i];
+		cumulativeMean[i] = (i == 0) ? i * probability[i] : cumulativeMean[i - 1] + i * probability[i];
+	}
+
+	double maxVariance = 0.0;
+	int otsuThreshold = 0;
+
+	for (int t = 0; t < 256; ++t) {
+		double w0 = cumulativeSum[t];
+		double w1 = 1.0 - w0;        
+
+		if (w0 == 0 || w1 == 0)
+			continue;
+
+		double mean0 = cumulativeMean[t] / w0;       // 클래스 1 평균
+		double mean1 = (cumulativeMean[255] - cumulativeMean[t]) / w1; // 클래스 2 평균
+
+		double variance = w0 * w1 * (mean0 - mean1) * (mean0 - mean1); // 클래스 간 분산
+
+		if (variance > maxVariance) {
+			maxVariance = variance;
+			otsuThreshold = t;
+		}
+	}
+
+	if (!Binarization(src, dst, otsuThreshold)) {
+		return false;
+	}
 	return true;
 }
 

@@ -22,6 +22,8 @@ public:
 	afx_msg void OnBnClickedButtonGaussian();
 	afx_msg void OnBnClickedButtonMedian();
 	afx_msg void OnBnClickedButtonInspection();
+	afx_msg void OnBnClickedButtonOtsu();
+	afx_msg void OnBnClickedButtonBilateral();
 
 	virtual BOOL OnInitDialog();
 	afx_msg void OnSize(UINT nType, int cx, int cy);
