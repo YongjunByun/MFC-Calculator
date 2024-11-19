@@ -289,6 +289,7 @@ bool ImageProcessing::BilateralBlur(Mat& src, Mat& dst, int d, double sigmaColor
 
 bool ImageProcessing::MedianBlur(Mat& src, Mat& dst, int ksize)
 {
+
 	if (ksize <= 1 || ksize % 2 == 0) 
 		return false; // 커널 사이즈 예외처리
 	if (src.isEmpty()) 
@@ -334,6 +335,70 @@ bool ImageProcessing::MedianBlur(Mat& src, Mat& dst, int ksize)
 
 bool ImageProcessing::MulThread_MedianBlur(Mat& src, Mat& dst, int ksize)
 {
+	if (ksize <= 1 || ksize % 2 == 0)
+		return false; // 커널 사이즈 예외처리
+	if (src.isEmpty())
+		return false;
+
+	int width = src.GetWidth();
+	int height = src.GetHeight();
+
+	dst = src.Copy();
+	const auto& srcData = src.getData();
+	auto& dstData = dst.getData();
+
+	int halfK = ksize / 2;
+
+	// 최소값 및 최대값 추적
+	atomic<uint16_t> globalMinValue(SIZE_UINT16);
+	atomic<uint16_t> globalMaxValue(0);
+
+	// 스레드풀을 사용해 행 단위 작업 분배
+	auto processRow = [&](int y) {
+		uint16_t localMinValue = SIZE_UINT16;
+		uint16_t localMaxValue = 0;
+
+		for (int x = 0; x < width; ++x) {
+			vector<uint16_t> neighborhood;
+
+			for (int ky = -halfK; ky <= halfK; ++ky) {
+				for (int kx = -halfK; kx <= halfK; ++kx) {
+					int nx = min(max(x + kx, 0), width - 1);
+					int ny = min(max(y + ky, 0), height - 1);
+					neighborhood.push_back(srcData[ny * width + nx]);
+				}
+			}
+
+			auto mid = neighborhood.begin() + neighborhood.size() / 2;
+			nth_element(neighborhood.begin(), mid, neighborhood.end());
+			uint16_t medianValue = *mid;
+
+			dstData[y * width + x] = medianValue;
+
+			localMinValue = min(localMinValue, medianValue);
+			localMaxValue = max(localMaxValue, medianValue);
+		}
+
+		// 전역 최소/최대값 업데이트
+		globalMinValue.store(min(globalMinValue.load(), localMinValue));
+		globalMaxValue.store(max(globalMaxValue.load(), localMaxValue));
+	};
+
+	// Future로 작업 스케줄링
+	vector<future<void>> futures;
+	for (int y = 0; y < height; ++y) {
+		futures.push_back(async(launch::async, processRow, y));
+	}
+
+	// 모든 작업 완료 대기
+	for (auto& f : futures) {
+		f.get();
+	}
+
+	// 결과값 설정
+	dst.SetMinValue(globalMinValue.load());
+	dst.SetMaxValue(globalMaxValue.load());
+
 	return true;
 }
 
@@ -386,7 +451,7 @@ bool ImageProcessing::Otsu(Mat& src, Mat& dst) {
 	int height = src.GetHeight();
 	int bitDepth = src.GetbitDepth();
 	if (bitDepth != 8)
-		Normalize(src, src, 0, 255); // 16비트 이미지면 정규화시키고 계산
+		Normalize(src, src, 0, 255); // 16비트 이미지면 정규화
 	dst = src.Copy();
 
 	vector<int> hist(256, 0);
@@ -408,7 +473,7 @@ bool ImageProcessing::Otsu(Mat& src, Mat& dst) {
 		probability[i] = static_cast<double>(hist[i]) / totalPixels;
 	}
 
-	// 누적합과 누적 평균
+	// 누적합과 누적평균
 	for (int i = 0; i < 256; ++i) {
 		cumulativeSum[i] = (i == 0) ? probability[i] : cumulativeSum[i - 1] + probability[i];
 		cumulativeMean[i] = (i == 0) ? i * probability[i] : cumulativeMean[i - 1] + i * probability[i];

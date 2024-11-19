@@ -138,7 +138,7 @@ void ProcessingDlg::OnBnClickedButtonMedian()
 	auto* displayDlg = pParentDialog->GetImageDisplayDlg();
 	Mat src = displayDlg->GetImage();
 	Mat dst;
-	if (!cv.MedianBlur(src, dst)){
+	if (!cv.MulThread_MedianBlur(src, dst)){
 		AfxMessageBox(L"FAIL");
 		return;
 	}

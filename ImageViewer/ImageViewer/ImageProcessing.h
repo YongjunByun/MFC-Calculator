@@ -9,6 +9,7 @@
 #include <queue>
 #include <thread>
 #include <mutex>
+#include <future>
 
 
 #define SIZE_UINT16 66535
