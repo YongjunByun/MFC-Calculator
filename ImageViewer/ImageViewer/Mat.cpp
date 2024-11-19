@@ -152,7 +152,7 @@ bool Mat::ImgSave(CString path, Mat& src)
 		}
 
 		uint16_t fileType = 0x4D42; // 'BM' 마크
-		uint32_t fileSize = 54 + src.m_data.size(); // 파일 전체 크기 (54바이트의 헤더 + 이미지 데이터 크기)
+		uint32_t fileSize = static_cast<uint32_t>(54 + src.m_data.size()); // 파일 전체 크기 (54바이트의 헤더 + 이미지 데이터 크기)
 		uint32_t reserved = 0; // 예약된 값
 		uint32_t offsetData = 54; // 픽셀 데이터의 시작 위치 (헤더 크기)
 
@@ -162,7 +162,7 @@ bool Mat::ImgSave(CString path, Mat& src)
 		uint16_t planes = 1; // 항상 1로 고정
 		uint16_t bitCount = 3 * 8; // 항상 3채널로 저장
 		uint32_t compression = 0; // 압축 없음
-		uint32_t imageSize = src.m_data.size(); // 이미지 데이터 크기
+		uint32_t imageSize = static_cast<uint32_t>(src.m_data.size()); // 이미지 데이터 크기
 		int32_t xPixelsPerMeter = 0, yPixelsPerMeter = 0;
 		uint32_t colorsUsed = 0, colorsImportant = 0;
 

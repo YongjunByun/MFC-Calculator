@@ -11,9 +11,6 @@
 #include <mutex>
 #include <future>
 
-
-#define SIZE_UINT16 66535
-
 using namespace std;
 
 class ImageProcessing
@@ -38,5 +35,7 @@ public:
 	bool Sobel(Mat& src, Mat& dst); // 컨투어찾을때만 썼어서 바이너리된 이미지만 인풋으로 받아봄.
 	bool DrawContours(Mat& src, Mat& dst, vector<vector<Point_>>& contours);
 	bool ResizeContours(vector<vector<Point_>>& contours, double ratio);
+
+	const int SIZEOF_UINT16 = 65535;
 };
 

@@ -30,7 +30,7 @@ bool ImageProcessing::RotateImage(Mat& src, Mat& dst, int theta)
 	int newCx = newWidth / 2;
 	int newCy = newHeight / 2;
 
-	int minvalue = SIZE_UINT16;
+	int minvalue = SIZEOF_UINT16;
 	int maxvalue = 0;
 	for (int y = 0; y < newHeight; ++y) {
 		for (int x = 0; x < newWidth; ++x) {
@@ -96,7 +96,7 @@ bool ImageProcessing::ResizeImage(Mat& src, Mat& dst, double ratio)
 	const auto& srcData = src.getData();
 	auto& dstData = dst.getData();
 
-	int minvalue = SIZE_UINT16;
+	int minvalue = SIZEOF_UINT16;
 	int maxvalue = 0;
 	for (int y = 0; y < newHeight; ++y) {
 		for (int x = 0; x < newWidth; ++x) {
@@ -243,7 +243,7 @@ bool ImageProcessing::BilateralBlur(Mat& src, Mat& dst, int d, double sigmaColor
 	int height = src.GetHeight();
 	int kernelSize = d;
 	if(d == -1)
-		kernelSize = 2 * ceil(3 * sigmaSpace) + 1; // 필터 크기, 3*sigmaSpace 범위 사용
+		kernelSize = static_cast<int>(2 * ceil(3 * sigmaSpace) + 1); // 필터 크기, 3*sigmaSpace 범위 사용
 	int halfKernel = kernelSize / 2;
 
 	// 가우시안 공간 필터 계산
@@ -304,7 +304,7 @@ bool ImageProcessing::MedianBlur(Mat& src, Mat& dst, int ksize)
 
 	int halfK = ksize / 2;
 
-	int minvalue = SIZE_UINT16;
+	int minvalue = SIZEOF_UINT16;
 	int maxvalue = 0;
 	for (int y = 0; y < height; ++y) {
 		for (int x = 0; x < width; ++x) {
@@ -350,12 +350,12 @@ bool ImageProcessing::MulThread_MedianBlur(Mat& src, Mat& dst, int ksize)
 	int halfK = ksize / 2;
 
 	// 최소값 및 최대값 추적
-	atomic<uint16_t> globalMinValue(SIZE_UINT16);
+	atomic<uint16_t> globalMinValue(static_cast<uint16_t>(SIZEOF_UINT16));
 	atomic<uint16_t> globalMaxValue(0);
 
 	// 스레드풀을 사용해 행 단위 작업 분배
 	auto processRow = [&](int y) {
-		uint16_t localMinValue = SIZE_UINT16;
+		uint16_t localMinValue = static_cast<uint16_t>(SIZEOF_UINT16);
 		uint16_t localMaxValue = 0;
 
 		for (int x = 0; x < width; ++x) {
@@ -515,7 +515,7 @@ bool ImageProcessing::Binarization(Mat & src, Mat & dst, int threshold)
 	int height = src.GetHeight();
 	int bitDepth = src.GetbitDepth();
 
-	int maxThreshold = (bitDepth == 8) ? 255 : SIZE_UINT16;
+	int maxThreshold = (bitDepth == 8) ? 255 : SIZEOF_UINT16;
 	if (threshold < 0 || threshold > maxThreshold) 
 		return false;
 
@@ -606,7 +606,7 @@ bool ImageProcessing::Sobel(Mat& src, Mat& dst) {
 	vector<vector<double>> x_kernel{ {-1,0,1}, {-2,0,2}, {-1,0,1} };
 	vector<vector<double>> y_kernel{ { -1,-2,-1 },{ 0,0,0 },{ 1,2,1 } };
 
-	int minvalue = SIZE_UINT16;
+	int minvalue = SIZEOF_UINT16;
 	int maxvalue = 0;
 	for (int y = 0; y < height; ++y) {
 		for (int x = 0; x < width; ++x) {
