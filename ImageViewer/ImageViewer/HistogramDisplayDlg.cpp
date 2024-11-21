@@ -111,6 +111,17 @@ void HistogramDisplayDlg::OnBnClickedButtonApply()
 	int x_offset = rect.Width() / 2 - 128;// 히스토그램을 컨트롤 중앙에 표시하기 위한 옵셋
 
 	int scaled_min, scaled_max;
+
+	if (min < displayDlg->GetImage().GetMinValue())
+		min = displayDlg->GetImage().GetMinValue();
+	else if(min > displayDlg->GetImage().GetMaxValue())
+		min = displayDlg->GetImage().GetMaxValue();
+
+	if (max < displayDlg->GetImage().GetMinValue())
+		max = displayDlg->GetImage().GetMinValue();
+	else if (max > displayDlg->GetImage().GetMaxValue())
+		max = displayDlg->GetImage().GetMaxValue();
+
 	if (mat.GetbitDepth() != 8) {
 		scaled_min = mat.LinearScale_U16toU8(min, displayDlg->GetImage().GetMinValue(), displayDlg->GetImage().GetMaxValue());
 		scaled_max = mat.LinearScale_U16toU8(max, displayDlg->GetImage().GetMinValue(), displayDlg->GetImage().GetMaxValue());

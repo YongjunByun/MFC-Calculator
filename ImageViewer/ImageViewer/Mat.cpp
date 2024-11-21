@@ -222,7 +222,7 @@ bool Mat::ImgSave(CString path, Mat& src)
 
 unsigned char Mat::LinearScale_U16toU8(uint16_t in_byte, int min, int max) {
 	if (min == max) // division by zero 예외처리
-		return max;
+		return 255;
 	unsigned char scaledValue = static_cast<unsigned char>(255 * (in_byte - min) / (max - min));
 	return scaledValue;
 }
@@ -243,9 +243,9 @@ bool Mat::isEmpty()
 	return false;
 }
 
-unsigned char Mat::at(int x, int y) const
+uint16_t Mat::at(int x, int y) const
 {
-	return static_cast<unsigned char>(m_data[y * m_width + x]); 
+	return static_cast<uint16_t>(m_data[y * m_width + x]); 
 }
 
 bool Mat::isValid(int x, int y) const

@@ -201,6 +201,11 @@ void CImageViewerDlg::ResizeDlgs() {
 	m_FileIODlg->ShowWindow(SW_SHOW);
 	m_ProcessingDlg->ShowWindow(SW_SHOW);
 	m_ImageDisplayDlg->ShowWindow(SW_SHOW);
+
+	m_HistogramDisplayDlg->Invalidate(FALSE);
+	m_FileIODlg->Invalidate(FALSE);
+	m_ProcessingDlg->Invalidate(FALSE);
+	m_ImageDisplayDlg->Invalidate(FALSE);
 }
 
 

@@ -28,7 +28,7 @@ public:
 	unsigned char LinearScale_U16toU8(uint16_t in_byte, int min, int max); // 16비트 픽셀값을 0 ~ 255 범위로 정규화함
 	Mat Copy();
 	bool isEmpty();
-	unsigned char at(int x, int y) const; // 16비트는 작동x
+	uint16_t at(int x, int y) const;
 	bool isValid(int x, int y) const;
 
 	// get & set

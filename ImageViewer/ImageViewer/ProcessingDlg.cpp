@@ -185,7 +185,7 @@ void ProcessingDlg::OnBnClickedButtonBilateral()
 	auto* displayDlg = pParentDialog->GetImageDisplayDlg();
 	Mat src = displayDlg->GetImage();
 	Mat dst;
-	if (!cv.BilateralBlur(src, dst, -1, 0.25, 2)) {
+	if (!cv.BilateralBlur(src, dst, 5, 0.5, 5)) {
 		AfxMessageBox(L"FAIL");
 		return;
 	}

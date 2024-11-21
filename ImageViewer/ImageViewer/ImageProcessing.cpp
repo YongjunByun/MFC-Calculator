@@ -20,31 +20,27 @@ bool ImageProcessing::RotateImage(Mat& src, Mat& dst, int theta)
 	auto& dstData = dst.getData();
 
 	double radians = theta * M_PI / 180.0;
-	int newWidth = static_cast<int>(abs(width * cos(radians)) + abs(height * sin(radians)));
-	int newHeight = static_cast<int>(abs(width * sin(radians)) + abs(height * cos(radians)));
 
-	dst = Mat(newWidth, newHeight, src.GetbitDepth());
+	dst = Mat(width, height, src.GetbitDepth());
 	
 	int cx = width / 2;
 	int cy = height / 2;
-	int newCx = newWidth / 2;
-	int newCy = newHeight / 2;
 
 	int minvalue = SIZEOF_UINT16;
 	int maxvalue = 0;
-	for (int y = 0; y < newHeight; ++y) {
-		for (int x = 0; x < newWidth; ++x) {
-			int srcX = static_cast<int>((x - newCx) * cos(-radians) - (y - newCy) * sin(-radians) + cx);
-			int srcY = static_cast<int>((x - newCx) * sin(-radians) + (y - newCy) * cos(-radians) + cy);
+	for (int y = 0; y < height; ++y) {
+		for (int x = 0; x < width; ++x) {
+			int srcX = static_cast<int>((x - cx) * cos(-radians) - (y - cy) * sin(-radians) + cx);
+			int srcY = static_cast<int>((x - cx) * sin(-radians) + (y - cy) * cos(-radians) + cy);
 
 			if (srcX >= 0 && srcX < width && srcY >= 0 && srcY < height) {
-				dstData[y * newWidth + x] = srcData[srcY * width + srcX];
+				dstData[y * width + x] = srcData[srcY * width + srcX];
 			}
 			else {
-				dstData[y * newWidth + x] = 0;
+				dstData[y * width + x] = 0;
 			}
-			minvalue = min(minvalue, dstData[y * newWidth + x]);
-			maxvalue = max(maxvalue, dstData[y * newWidth + x]);
+			minvalue = min(minvalue, dstData[y * width + x]);
+			maxvalue = max(maxvalue, dstData[y * width + x]);
 		}
 	}
 	dst.SetMinValue(minvalue);
@@ -117,7 +113,7 @@ bool ImageProcessing::ResizeImage(Mat& src, Mat& dst, double ratio)
 				(1 - xWeight) * yWeight * srcData[y2 * width + x1] +
 				xWeight * yWeight * srcData[y2 * width + x2];
 
-			dstData[y * newWidth + x] = static_cast<uint16_t>(value);
+			dstData[y * newWidth + x] = static_cast<uint16_t>(round(value));
 			minvalue = min(minvalue, dstData[y * newWidth + x]);
 			maxvalue = max(maxvalue, dstData[y * newWidth + x]);
 		}
@@ -194,6 +190,7 @@ bool ImageProcessing::SeparableGaussianBlur(Mat& src, Mat& dst, int ksize, int s
 
 	const auto& srcData = src.getData();
 	auto& dstData = dst.getData();
+	auto& tempData = dst.getData(); 
 
 	vector<double> kernel(ksize, 0);
 	int halfK = ksize / 2;
@@ -217,7 +214,7 @@ bool ImageProcessing::SeparableGaussianBlur(Mat& src, Mat& dst, int ksize, int s
 				int nx = min(max(x + i, 0), width - 1);
 				pixelSum += srcData[y * width + nx] * kernel[i + halfK];
 			}
-			dstData[y * width + x] = static_cast<uint16_t>(pixelSum);
+			tempData[y * width + x] = static_cast<uint16_t>(pixelSum);
 		}
 	}
 
@@ -226,7 +223,7 @@ bool ImageProcessing::SeparableGaussianBlur(Mat& src, Mat& dst, int ksize, int s
 			double pixelSum = 0.0;
 			for (int i = -halfK; i <= halfK; ++i) {
 				int ny = min(max(y + i, 0), height - 1);
-				pixelSum += dstData[ny * width + x] * kernel[i + halfK];
+				pixelSum += tempData[ny * width + x] * kernel[i + halfK];
 			}
 			dstData[y * width + x] = static_cast<uint16_t>(pixelSum);
 		}
@@ -434,7 +431,7 @@ bool ImageProcessing::Threshold(Mat& src, Mat& dst, int min_threshold, int max_t
 		if (pixel > max_threshold) {
 			pixel = max_threshold;
 		}
-		if (pixel < min_threshold) {
+		else if (pixel < min_threshold) {
 			pixel = min_threshold;
 		}
 	}
