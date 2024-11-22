@@ -19,6 +19,8 @@ public:
 	afx_msg void OnLbnDblclkListFile();
 	virtual BOOL OnInitDialog();
 	void ResizeControls();
+	void OnOK();
+	void OnCancel();
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 지원입니다.

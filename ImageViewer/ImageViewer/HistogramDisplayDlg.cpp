@@ -211,7 +211,7 @@ BOOL HistogramDisplayDlg::OnInitDialog()
 
 	// TODO:  여기에 추가 초기화 작업을 추가합니다.
 	m_isInitialized = true;
-	return TRUE;
+	return FALSE;
 }
 
 void HistogramDisplayDlg::DrawHistogram(Mat& in_img) {
@@ -312,4 +312,29 @@ int HistogramDisplayDlg::MaxHistBarHeight(int threshold_min, int threshold_max, 
 		}
 	}
 	return maxheight;
+}
+
+void HistogramDisplayDlg::OnOK()
+{
+	// Enter 키 눌림 동작 무시
+	// CDialog::OnOK(); 호출하지 않음
+}
+
+void HistogramDisplayDlg::OnCancel()
+{
+	// Esc 키 눌림 동작 무시
+	// CDialog::OnCancel(); 호출하지 않음
+}
+
+BOOL HistogramDisplayDlg::PreTranslateMessage(MSG* pMsg)
+{
+	if (pMsg->message == WM_CHAR)
+	{
+		if (!isdigit(static_cast<int>(pMsg->wParam)) && pMsg->wParam != VK_BACK)
+		{
+			// 허용되지 않는 문자 입력을 차단
+			return TRUE; // 메시지를 처리했음을 알림
+		}
+	}
+	return CDialog::PreTranslateMessage(pMsg);
 }

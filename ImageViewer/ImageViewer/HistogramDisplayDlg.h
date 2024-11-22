@@ -22,6 +22,9 @@ public:
 	void DrawHistogram(Mat& in_img);
 	bool CheckEditRange(int mininput, int maxinput, bool is16bit);
 	int MaxHistBarHeight(int threshold_min, int threshold_max, std::vector<int> histogram);
+	void OnOK();
+	void OnCancel();
+	BOOL PreTranslateMessage(MSG * pMsg);
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 지원입니다.

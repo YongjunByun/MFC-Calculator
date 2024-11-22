@@ -35,6 +35,12 @@ protected:
 private:
 	void ResizeControls();
 
+	void OnOK();
+
+	void OnCancel();
+
+	BOOL PreTranslateMessage(MSG * pMsg);
+
 	bool m_isInitialized = false;
 	ImageProcessing cv;
 	CEdit m_edit_threshold;

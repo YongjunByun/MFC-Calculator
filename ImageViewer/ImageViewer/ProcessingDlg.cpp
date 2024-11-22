@@ -197,7 +197,7 @@ BOOL ProcessingDlg::OnInitDialog()
 	CDialogEx::OnInitDialog();
 
 	m_isInitialized = true;
-	return TRUE;
+	return FALSE;
 }
 
 void ProcessingDlg::OnSize(UINT nType, int cx, int cy)
@@ -273,3 +273,27 @@ void ProcessingDlg::ResizeControls() {
 
 }
 
+void ProcessingDlg::OnOK()
+{
+	// Enter 키 눌림 동작 무시
+	// CDialog::OnOK(); 호출하지 않음
+}
+
+void ProcessingDlg::OnCancel()
+{
+	// Esc 키 눌림 동작 무시
+	// CDialog::OnCancel(); 호출하지 않음
+}
+
+BOOL ProcessingDlg::PreTranslateMessage(MSG* pMsg)
+{
+	if (pMsg->message == WM_CHAR)
+	{
+		if (!isdigit(static_cast<int>(pMsg->wParam)) && pMsg->wParam != VK_BACK)
+		{
+			// 허용되지 않는 문자 입력을 차단
+			return TRUE; // 메시지를 처리했음을 알림
+		}
+	}
+	return CDialog::PreTranslateMessage(pMsg);
+}

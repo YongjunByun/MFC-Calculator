@@ -166,7 +166,7 @@ BOOL FileIODlg::OnInitDialog()
 	CDialogEx::OnInitDialog();
 	ModifyStyle(0, WS_CLIPCHILDREN);
 	m_isInitialized = true;
-	return TRUE;
+	return FALSE;
 }
 
 void FileIODlg::ResizeControls() {
@@ -187,4 +187,15 @@ void FileIODlg::ResizeControls() {
 	::DeferWindowPos(hdwp, pButtonLoad->GetSafeHwnd(), HWND_TOP, 30, row1Height, clientRect.Width() - 60, row2Height, SWP_NOZORDER);
 	::DeferWindowPos(hdwp, pListFile->GetSafeHwnd(), HWND_TOP, 30, row1Height + row2Height, clientRect.Width() - 60, row3Height, SWP_NOZORDER);
 	::EndDeferWindowPos(hdwp);*/
+}
+void FileIODlg::OnOK()
+{
+	// Enter 키 눌림 동작 무시
+	// CDialog::OnOK(); 호출하지 않음
+}
+
+void FileIODlg::OnCancel()
+{
+	// Esc 키 눌림 동작 무시
+	// CDialog::OnCancel(); 호출하지 않음
 }

@@ -18,8 +18,6 @@ public:
 	ImageDisplayDlg* GetImageDisplayDlg();
 	HistogramDisplayDlg* GetHistogramDisplayDlg();
 	
-	
-
 protected:
 	HICON m_hIcon;
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 지원입니다.
@@ -38,4 +36,5 @@ private:
 	CImage m_image_view;
 	CRect m_rcMinimumDialog;
 	void ResizeDlgs();
+	BOOL PreTranslateMessage(MSG * pMsg);
 };
